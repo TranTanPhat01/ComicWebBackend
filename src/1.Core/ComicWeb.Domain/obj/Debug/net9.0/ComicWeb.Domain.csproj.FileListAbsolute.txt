@@ -1,0 +1,11 @@
+D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Domain\bin\Debug\net9.0\ComicWeb.Domain.deps.json
+D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Domain\bin\Debug\net9.0\ComicWeb.Domain.dll
+D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Domain\bin\Debug\net9.0\ComicWeb.Domain.pdb
+D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Domain\obj\Debug\net9.0\ComicWeb.Domain.GeneratedMSBuildEditorConfig.editorconfig
+D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Domain\obj\Debug\net9.0\ComicWeb.Domain.AssemblyInfoInputs.cache
+D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Domain\obj\Debug\net9.0\ComicWeb.Domain.AssemblyInfo.cs
+D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Domain\obj\Debug\net9.0\ComicWeb.Domain.csproj.CoreCompileInputs.cache
+D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Domain\obj\Debug\net9.0\ComicWeb.Domain.dll
+D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Domain\obj\Debug\net9.0\refint\ComicWeb.Domain.dll
+D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Domain\obj\Debug\net9.0\ComicWeb.Domain.pdb
+D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Domain\obj\Debug\net9.0\ref\ComicWeb.Domain.dll

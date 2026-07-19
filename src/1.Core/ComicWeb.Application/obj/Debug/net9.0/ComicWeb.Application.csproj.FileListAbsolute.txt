@@ -1,0 +1,15 @@
+D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Application\bin\Debug\net9.0\ComicWeb.Application.deps.json
+D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Application\bin\Debug\net9.0\ComicWeb.Application.dll
+D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Application\bin\Debug\net9.0\ComicWeb.Application.pdb
+D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Application\bin\Debug\net9.0\ComicWeb.Domain.dll
+D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Application\bin\Debug\net9.0\ComicWeb.Domain.pdb
+D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Application\obj\Debug\net9.0\ComicWeb.Application.csproj.AssemblyReference.cache
+D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Application\obj\Debug\net9.0\ComicWeb.Application.GeneratedMSBuildEditorConfig.editorconfig
+D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Application\obj\Debug\net9.0\ComicWeb.Application.AssemblyInfoInputs.cache
+D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Application\obj\Debug\net9.0\ComicWeb.Application.AssemblyInfo.cs
+D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Application\obj\Debug\net9.0\ComicWeb.Application.csproj.CoreCompileInputs.cache
+D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Application\obj\Debug\net9.0\ComicWeb.AF1ABC56.Up2Date
+D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Application\obj\Debug\net9.0\ComicWeb.Application.dll
+D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Application\obj\Debug\net9.0\refint\ComicWeb.Application.dll
+D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Application\obj\Debug\net9.0\ComicWeb.Application.pdb
+D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Application\obj\Debug\net9.0\ref\ComicWeb.Application.dll
