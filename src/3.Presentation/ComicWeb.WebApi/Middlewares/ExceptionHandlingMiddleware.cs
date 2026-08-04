@@ -1,49 +1,74 @@
-﻿using System;
-using System.Net;
+using ComicWeb.Application.Common.Exceptions;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using System.Text.Json;
 
-namespace ComicWeb.WebApi.Middlewares
+namespace ComicWeb.WebApi.Middlewares;
+
+public sealed class ExceptionHandlingMiddleware(
+    RequestDelegate next,
+    ILogger<ExceptionHandlingMiddleware> logger)
 {
-    public class ExceptionHandlingMiddleware
+    public async Task InvokeAsync(HttpContext context)
     {
-        private readonly RequestDelegate _next;
-        private readonly ILogger<ExceptionHandlingMiddleware> _logger;
-
-        public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
+        try
         {
-            _next = next;
-            _logger = logger;
+            await next(context);
         }
-
-        public async Task InvokeAsync(HttpContext httpContext)
+        catch (Exception exception)
         {
-            try
-            {
-                await _next(httpContext);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Một lỗi hệ thống đã xảy ra: {Message}", ex.Message);
-                await HandleExceptionAsync(httpContext, ex);
-            }
-        }
+            logger.LogError(
+                exception,
+                "Unhandled exception. RequestId: {RequestId}",
+                context.TraceIdentifier);
 
-        public static Task HandleExceptionAsync(HttpContext context, Exception exception)
-        {
-            context.Response.ContentType = "application/json";
-
-            //Mặc định là lỗi 500 (Internal Server Error)
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-
-            var response = new
+            var appException = ToAppException(exception);
+            var problem = new ProblemDetails
             {
-                statusCode = context.Response.StatusCode,
-                message = "Đã xảy ra lỗi hệ thống từ phía Backend. Vui lòng thử lại sau.",
-                detailed = exception.Message // Có thể ẩn đi khi deploy production để bảo mật
+                Type = $"https://comicweb/errors/{appException.Code.ToLowerInvariant()}",
+                Title = appException.Title,
+                Status = appException.StatusCode,
+                Detail = appException.Message
             };
 
-            var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-            return context.Response.WriteAsync(JsonSerializer.Serialize(response, jsonOptions));
+            problem.Extensions["code"] = appException.Code;
+            problem.Extensions["requestId"] = context.TraceIdentifier;
+
+            context.Response.StatusCode = problem.Status.Value;
+            context.Response.ContentType = "application/problem+json";
+
+            await context.Response.WriteAsync(
+                JsonSerializer.Serialize(
+                    problem,
+                    new JsonSerializerOptions(JsonSerializerDefaults.Web)));
         }
+    }
+
+    private static AppException ToAppException(Exception exception)
+    {
+        if (exception is AppException appException)
+        {
+            return appException;
+        }
+
+        if (exception is DbUpdateException
+            {
+                InnerException: PostgresException postgresException
+            }
+            && postgresException.SqlState == PostgresErrorCodes.UniqueViolation)
+        {
+            return new AppException(
+                "DUPLICATE_RESOURCE",
+                StatusCodes.Status409Conflict,
+                "Conflict",
+                "A record with the same unique value already exists.");
+        }
+
+        return new AppException(
+            "INTERNAL_ERROR",
+            StatusCodes.Status500InternalServerError,
+            "Internal server error",
+            "An unexpected server error occurred.");
     }
 }

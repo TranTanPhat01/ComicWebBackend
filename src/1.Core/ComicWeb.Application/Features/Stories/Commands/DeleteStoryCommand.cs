@@ -22,7 +22,7 @@ namespace ComicWeb.Application.Features.Stories.Commands
 
             if (story == null) return false;
 
-            _context.Stories.Remove(story);
+            story.SoftDelete(DateTime.UtcNow);
             await _context.SaveChangesAsync(cancellationToken);
             return true;
         }

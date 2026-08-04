@@ -13,3 +13,4 @@ D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Application\obj\Debug\net9.0\ComicWeb
 D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Application\obj\Debug\net9.0\refint\ComicWeb.Application.dll
 D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Application\obj\Debug\net9.0\ComicWeb.Application.pdb
 D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Application\obj\Debug\net9.0\ref\ComicWeb.Application.dll
+D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Application\obj\Debug\net9.0\ComicWeb.Application.sourcelink.json

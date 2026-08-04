@@ -29,11 +29,6 @@ namespace ComicWeb.Persistence.Migrations
                     table.PrimaryKey("PK_Users", x => x.Id);
                 });
 
-            migrationBuilder.InsertData(
-                table: "Users",
-                columns: new[] { "Id", "CreatedAt", "Email", "PasswordHash", "Role", "Username" },
-                values: new object[] { 1, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Admin@gmail.com", "$2a$11$4uI7tdpIL3OIXUX.CCVeeel2jCu0vs4tsqy5OhwexAO5eBU9ox5B6", "Admin", "Admin" });
-
             migrationBuilder.CreateIndex(
                 name: "IX_Users_Username",
                 table: "Users",

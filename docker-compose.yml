@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: comicweb-postgres
+    environment:
+      POSTGRES_DB: ComicWeb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "123456"
+    ports:
+      - "5433:5432"
+    volumes:
+      - comicweb-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ComicWeb"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+
+  comicweb-api:
+    container_name: comicweb-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=ComicWeb;Username=postgres;Password=123456
+      Jwt__Issuer: ComicWeb
+      Jwt__Audience: ComicWebFrontend
+      Jwt__SigningKey: ComicWeb-Development-JWT-Signing-Key-2026-At-Least-64-Characters-123456
+      BootstrapAdmin__Enabled: "true"
+      BootstrapAdmin__Username: admin
+      BootstrapAdmin__Email: admin@gmail.com
+      BootstrapAdmin__Password: Admin@Comic2026Strong
+      DatabaseInitialization__ApplyMigrationsOnStartup: "true"
+      DatabaseInitialization__MaxRetryAttempts: "10"
+      DatabaseInitialization__RetryDelaySeconds: "2"
+      ScheduledPublishing__Enabled: "true"
+      ScheduledPublishing__IntervalSeconds: "10"
+      ScheduledPublishing__BatchSize: "50"
+      PublicCache__Enabled: "true"
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: on-failure
+
+volumes:
+  comicweb-postgres-data:

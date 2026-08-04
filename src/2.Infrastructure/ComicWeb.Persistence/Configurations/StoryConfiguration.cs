@@ -1,34 +1,7 @@
-﻿using ComicWeb.Domain.Entities;
+using ComicWeb.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+namespace ComicWeb.Persistence.Configurations;
 
-namespace ComicWeb.Persistence.Configurations
-{
-    public class StoryConfiguration : IEntityTypeConfiguration<Story>
-    {
-        public void Configure(EntityTypeBuilder<Story> builder)
-        {
-            builder.HasKey(s => s.Id);
-
-            builder.Property(s => s.Title)
-                .IsRequired()
-                .HasMaxLength(250);
-
-            builder.Property(s => s.Description)
-                .HasMaxLength(2000);
-
-            // --- CẤU HÌNH LƯU ENUM THÀNH STRING Ở ĐÂY ---
-            builder.Property(s => s.Status)
-                .HasConversion<string>() // Tự động map Enum thành String (Ví dụ: Ongoing, Completed)
-                .HasMaxLength(50)        // Giới hạn độ dài chuỗi trong DB để tối ưu hiệu năng
-                .IsRequired();
-
-            builder.HasIndex(s => s.Title);
-        }
-    }
-}
+public sealed class StoryConfiguration : IEntityTypeConfiguration<Story>
+{ public void Configure(EntityTypeBuilder<Story> b) { b.HasKey(x => x.Id); b.Property(x => x.Title).IsRequired().HasMaxLength(250); b.Property(x => x.Slug).IsRequired().HasMaxLength(250); b.Property(x => x.Description).HasMaxLength(4000); b.Property(x => x.AuthorName).HasMaxLength(250); b.Property(x => x.Status).HasConversion<string>().HasMaxLength(32).IsRequired(); b.Property(x => x.Version).IsConcurrencyToken(); b.HasQueryFilter(x => x.DeletedAt == null); b.HasIndex(x => x.Slug).IsUnique().HasFilter("\"DeletedAt\" IS NULL"); b.HasIndex(x => new { x.Status, x.PublishedAt }); b.HasIndex(x => new { x.ScheduledAt, x.Status }); } }

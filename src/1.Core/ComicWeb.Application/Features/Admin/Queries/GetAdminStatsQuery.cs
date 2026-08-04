@@ -18,13 +18,13 @@ namespace ComicWeb.Application.Features.Admin.Queries
 
         public async Task<AdminStatsDto> Handle(GetAdminStatsQuery request, CancellationToken cancellationToken)
         {
-            var totalStories   = await _context.Stories.CountAsync(cancellationToken);
-            var totalChapters  = await _context.Chapters.CountAsync(cancellationToken);
-            var totalUsers     = await _context.Users.CountAsync(cancellationToken);
-            var totalLogs      = await _context.SystemLogs.CountAsync(cancellationToken);
+            var totalStories = await _context.Stories.CountAsync(cancellationToken);
+            var totalChapters = await _context.Chapters.CountAsync(cancellationToken);
+            var totalUsers = await _context.Users.CountAsync(cancellationToken);
+            var totalLogs = await _context.SystemLogs.CountAsync(cancellationToken);
             var lockedChapters = await _context.Chapters.CountAsync(c => c.IsLocked, cancellationToken);
             var ongoingStories = await _context.Stories
-                .CountAsync(s => s.Status == ComicWeb.Domain.Enums.StoryStatus.Ongoing, cancellationToken);
+                .CountAsync(s => s.Status == ComicWeb.Domain.Enums.StoryStatus.Published, cancellationToken);
 
             return new AdminStatsDto(totalStories, totalChapters, totalUsers, totalLogs, lockedChapters, ongoingStories);
         }

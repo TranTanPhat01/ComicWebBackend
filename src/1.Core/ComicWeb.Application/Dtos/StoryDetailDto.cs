@@ -14,5 +14,5 @@ namespace ComicWeb.Application.Dtos
         string Status,
         List<ChapterListDto> Chapters
         );
-    
+
 }

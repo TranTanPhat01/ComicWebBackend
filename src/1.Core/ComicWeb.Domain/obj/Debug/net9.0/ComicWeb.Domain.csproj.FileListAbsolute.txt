@@ -9,3 +9,4 @@ D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Domain\obj\Debug\net9.0\ComicWeb.Doma
 D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Domain\obj\Debug\net9.0\refint\ComicWeb.Domain.dll
 D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Domain\obj\Debug\net9.0\ComicWeb.Domain.pdb
 D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Domain\obj\Debug\net9.0\ref\ComicWeb.Domain.dll
+D:\Hai\ComicWebBackend\src\1.Core\ComicWeb.Domain\obj\Debug\net9.0\ComicWeb.Domain.sourcelink.json

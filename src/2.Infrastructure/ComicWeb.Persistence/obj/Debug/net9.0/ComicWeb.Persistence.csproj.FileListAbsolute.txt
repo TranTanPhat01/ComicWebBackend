@@ -17,3 +17,4 @@ D:\Hai\ComicWebBackend\src\2.Infrastructure\ComicWeb.Persistence\obj\Debug\net9.
 D:\Hai\ComicWebBackend\src\2.Infrastructure\ComicWeb.Persistence\obj\Debug\net9.0\ref\ComicWeb.Persistence.dll
 D:\Hai\ComicWebBackend\src\2.Infrastructure\ComicWeb.Persistence\bin\Debug\net9.0\ComicWeb.Application.dll
 D:\Hai\ComicWebBackend\src\2.Infrastructure\ComicWeb.Persistence\bin\Debug\net9.0\ComicWeb.Application.pdb
+D:\Hai\ComicWebBackend\src\2.Infrastructure\ComicWeb.Persistence\obj\Debug\net9.0\ComicWeb.Persistence.sourcelink.json

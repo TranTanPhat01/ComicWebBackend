@@ -31,7 +31,7 @@ namespace ComicWeb.Application.Features.Stories.Commands
 
                 // XÓA DÒNG CŨ: Status = "Đang tiến hành"
                 // SỬA THÀNH DÒNG MỚI:
-                Status = StoryStatus.Ongoing
+                Status = StoryStatus.Draft
             };
 
             _context.Stories.Add(story);

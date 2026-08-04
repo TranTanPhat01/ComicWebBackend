@@ -1,4 +1,4 @@
-﻿using ComicWeb.Domain.Entities;
+using ComicWeb.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,10 +12,11 @@ namespace ComicWeb.Application.Common.Interface
     {
         DbSet<Story> Stories { get; }
         DbSet<Chapter> Chapters { get; }
+        DbSet<Genre> Genres { get; }
         DbSet<SystemLog> SystemLogs { get; }
         DbSet<UserNotification> UserNotifications { get; }
-
         DbSet<User> Users { get; }
+        DbSet<AuditLog> AuditLogs { get; }
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken);
     }

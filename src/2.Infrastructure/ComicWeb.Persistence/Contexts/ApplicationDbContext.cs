@@ -1,6 +1,6 @@
-﻿using ComicWeb.Domain.Entities;
+using ComicWeb.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using ComicWeb.Application.Common.Interface; 
+using ComicWeb.Application.Common.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,9 +17,12 @@ namespace ComicWeb.Persistence.Contexts
 
         public DbSet<Story> Stories => Set<Story>();
         public DbSet<Chapter> Chapters => Set<Chapter>();
+        public DbSet<Genre> Genres => Set<Genre>();
         public DbSet<SystemLog> SystemLogs => Set<SystemLog>();
         public DbSet<UserNotification> UserNotifications => Set<UserNotification>();
         public DbSet<User> Users => Set<User>();
+        public DbSet<RefreshSession> RefreshSessions => Set<RefreshSession>();
+        public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

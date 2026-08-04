@@ -22,7 +22,7 @@ namespace ComicWeb.Application.Features.Stories.Commands
 
             if (chapter == null) return false;
 
-            _context.Chapters.Remove(chapter);
+            chapter.SoftDelete(DateTime.UtcNow);
             await _context.SaveChangesAsync(cancellationToken);
             return true;
         }

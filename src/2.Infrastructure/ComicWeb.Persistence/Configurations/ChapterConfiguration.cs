@@ -1,35 +1,7 @@
-﻿using ComicWeb.Domain.Entities;
+using ComicWeb.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+namespace ComicWeb.Persistence.Configurations;
 
-namespace ComicWeb.Persistence.Configurations
-{
-    public class ChapterConfiguration : IEntityTypeConfiguration<Chapter>
-    {
-        public void Configure(EntityTypeBuilder<Chapter> builder)
-        {
-            builder.HasKey(c => c.Id);
-
-            builder.Property(c => c.Title)
-                .HasMaxLength(250);
-
-            builder.Property(c => c.Content)
-                .IsRequired(); // Nội dung chữ của truyện bắt buộc phải có
-
-            builder.Property(c => c.AffiliateLink)
-                .HasMaxLength(500); // Giới hạn link Shopee tránh quá dài
-
-            // Cấu hình quan hệ 1-Nhiều (1 Truyện có Nhiều Chương)
-            builder.HasOne(c => c.Story)
-                .WithMany(s => s.Chapters)
-                .HasForeignKey(c => c.StoryId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-        }
-    }
-}
+public sealed class ChapterConfiguration : IEntityTypeConfiguration<Chapter>
+{ public void Configure(EntityTypeBuilder<Chapter> b) { b.HasKey(x => x.Id); b.Property(x => x.Title).IsRequired().HasMaxLength(250); b.Property(x => x.Content).IsRequired(); b.Property(x => x.Slug).IsRequired().HasMaxLength(250); b.Property(x => x.Status).HasConversion<string>().HasMaxLength(32).IsRequired(); b.Property(x => x.Version).IsConcurrencyToken(); b.HasQueryFilter(x => x.DeletedAt == null); b.HasOne(x => x.Story).WithMany(x => x.Chapters).HasForeignKey(x => x.StoryId).OnDelete(DeleteBehavior.Restrict); b.HasIndex(x => new { x.StoryId, x.ChapterNumber }).IsUnique().HasFilter("\"DeletedAt\" IS NULL"); b.HasIndex(x => new { x.StoryId, x.Slug }).IsUnique().HasFilter("\"DeletedAt\" IS NULL"); b.HasIndex(x => new { x.StoryId, x.Status, x.ChapterNumber }); b.HasIndex(x => new { x.ScheduledAt, x.Status }); } }

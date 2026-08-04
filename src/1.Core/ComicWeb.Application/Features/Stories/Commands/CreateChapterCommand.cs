@@ -46,4 +46,4 @@ namespace ComicWeb.Application.Features.Stories.Commands
             return chapter.Id;
         }
     }
- }
+}

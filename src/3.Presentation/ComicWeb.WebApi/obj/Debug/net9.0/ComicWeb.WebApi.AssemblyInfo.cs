@@ -11,10 +11,11 @@
 using System;
 using System.Reflection;
 
+[assembly: Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute("b85dbe2a-191d-4ff1-a189-99bbdb916990")]
 [assembly: System.Reflection.AssemblyCompanyAttribute("ComicWeb.WebApi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+bf5eb940439d8f8b65070c4c7cafe453e2c8c822")]
 [assembly: System.Reflection.AssemblyProductAttribute("ComicWeb.WebApi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ComicWeb.WebApi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

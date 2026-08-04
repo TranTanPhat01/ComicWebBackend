@@ -173,16 +173,6 @@ namespace ComicWeb.Persistence.Migrations
 
                     b.ToTable("Users");
 
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Email = "Admin@gmail.com",
-                            PasswordHash = "$2a$11$4uI7tdpIL3OIXUX.CCVeeel2jCu0vs4tsqy5OhwexAO5eBU9ox5B6",
-                            Role = "Admin",
-                            Username = "Admin"
-                        });
                 });
 
             modelBuilder.Entity("ComicWeb.Domain.Entities.UserNotification", b =>

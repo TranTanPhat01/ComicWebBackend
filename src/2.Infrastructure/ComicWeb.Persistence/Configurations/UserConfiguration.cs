@@ -15,22 +15,15 @@ namespace ComicWeb.Persistence.Configurations
         {
             builder.HasKey(u => u.Id);
             builder.Property(u => u.Username).IsRequired().HasMaxLength(100);
-            builder.HasIndex(u => u.Username).IsUnique();
-
-            // Sử dụng thư viện BCrypt.Net-Next (hoặc tương đương) để hash mật khẩu trước khi lưu DB
-            // Để đơn giản hóa ở bước này, ta giả định mật khẩu đã được hash
-            string staticHash = BCrypt.Net.BCrypt.HashPassword("Admin@system");
-
-            // Tự động chèn dữ liệu khi database được khởi tạo hoặc cập nhật
-            builder.HasData(new User
-            {
-                Id = 1,
-                Username = "Admin",
-                PasswordHash = staticHash,
-                Email = "Admin@gmail.com",
-                Role = "Admin",
-                CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-            });
+            builder.Property(u => u.NormalizedUsername).IsRequired().HasMaxLength(100);
+            builder.Property(u => u.Email).IsRequired().HasMaxLength(320);
+            builder.Property(u => u.NormalizedEmail).IsRequired().HasMaxLength(320);
+            builder.Property(u => u.PasswordHash).IsRequired();
+            builder.Property(u => u.Role).HasConversion<string>().IsRequired();
+            builder.Property(u => u.IsActive).HasDefaultValue(true);
+            builder.Property(u => u.MustChangePassword).HasDefaultValue(false);
+            builder.HasIndex(u => u.NormalizedUsername).IsUnique();
+            builder.HasIndex(u => u.NormalizedEmail).IsUnique();
         }
     }
 }
