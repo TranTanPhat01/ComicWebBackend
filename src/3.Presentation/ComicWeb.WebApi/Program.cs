@@ -62,7 +62,8 @@ static void ConfigureCors(IServiceCollection services)
                 policy
                     .WithOrigins(
                         "http://localhost:3000",
-                        "https://truyenweb.vercel.app")
+                        "https://truyenweb.vercel.app",
+                        "https://comic-web-front-end.vercel.app")
                     .AllowAnyHeader()
                     .AllowAnyMethod()
                     .AllowCredentials();
