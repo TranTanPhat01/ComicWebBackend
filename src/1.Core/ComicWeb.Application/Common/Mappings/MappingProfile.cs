@@ -13,14 +13,11 @@ namespace ComicWeb.Application.Common.Mappings
     {
         public MappingProfile()
         {
-            // Map Story -> StoryDto, converting Status enum to string explicitly
-            CreateMap<Story, StoryDto>()
-                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
+            CreateMap<Story, StoryDto>();
 
             CreateMap<Chapter, ChapterListDto>();
 
-            CreateMap<Story, StoryDetailDto>()
-                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
+            CreateMap<Story, StoryDetailDto>();
         }
 
     }
