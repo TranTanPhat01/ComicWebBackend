@@ -31,4 +31,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Content\demo-chapter-content.html" />
+  </ItemGroup>
+
 </Project>
