@@ -11,7 +11,7 @@ namespace ComicWeb.Application.Dtos
         string Title,
         string Description,
         string CoverImageUrl,
-        string AuthorName,
+        string? AuthorName,
         string Status
     );
 
