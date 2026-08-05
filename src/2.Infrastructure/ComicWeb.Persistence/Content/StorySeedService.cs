@@ -8,6 +8,8 @@ using System.Data.Common;
 
 namespace ComicWeb.Persistence.Content;
 
+public sealed class StorySeedService(IServiceScopeFactory scopeFactory, ILogger<StorySeedService> logger) : IHostedService
+{
     private static async Task<string> LoadDemoChapterContentAsync()
     {
         var assembly = typeof(StorySeedService).Assembly;
