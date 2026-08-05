@@ -238,5 +238,5 @@ public sealed class PublishWorkflowHandler :
     private static AppException Error(string code, int status, string detail) => new(code, status, status == 404 ? "Not found" : status == 409 ? "Conflict" : "Validation failed", detail);
 
     private static AdminStoryDto StoryDto(Story story) => new(story.Id, story.Title, story.Slug, story.Description, story.CoverImageUrl, story.AuthorName, story.Genres.OrderBy(x => x.Name).Select(x => x.Name).ToList(), story.Status.ToString(), story.Version, story.PublishedAt, story.DeletedAt, story.CreateAt, story.UpdateAt, story.ScheduledAt);
-    private static AdminChapterDto ChapterDto(Chapter chapter) => new(chapter.Id, chapter.StoryId, chapter.ChapterNumber, chapter.Title ?? string.Empty, chapter.Slug, chapter.Content ?? string.Empty, chapter.Status.ToString(), chapter.Version, chapter.PublishedAt, chapter.DeletedAt, chapter.CreateAt, chapter.UpdateAt, chapter.ScheduledAt);
+    private static AdminChapterDto ChapterDto(Chapter chapter) => new(chapter.Id, chapter.StoryId, chapter.ChapterNumber, chapter.Title ?? string.Empty, chapter.Slug, chapter.Content ?? string.Empty, chapter.Status.ToString(), chapter.Version, chapter.PublishedAt, chapter.DeletedAt, chapter.CreateAt, chapter.UpdateAt, chapter.IsLocked, chapter.AffiliateLink, chapter.ScheduledAt);
 }

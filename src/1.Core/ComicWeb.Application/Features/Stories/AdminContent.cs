@@ -11,7 +11,7 @@ namespace ComicWeb.Application.Features.Stories;
 public sealed record PageMeta(int Page, int PageSize, int TotalItems, int TotalPages);
 public sealed record PagedResult<T>(IReadOnlyList<T> Items, PageMeta Meta);
 public sealed record AdminStoryDto(int Id, string Title, string Slug, string Description, string CoverImageUrl, string? AuthorName, IReadOnlyList<string> Genres, string Status, int Version, DateTime? PublishedAt, DateTime? DeletedAt, DateTime CreateAt, DateTime? UpdateAt, DateTime? ScheduledAt = null);
-public sealed record AdminChapterDto(int Id, int StoryId, int ChapterNumber, string Title, string Slug, string Content, string Status, int Version, DateTime? PublishedAt, DateTime? DeletedAt, DateTime CreateAt, DateTime? UpdateAt, DateTime? ScheduledAt = null);
+public sealed record AdminChapterDto(int Id, int StoryId, int ChapterNumber, string Title, string Slug, string Content, string Status, int Version, DateTime? PublishedAt, DateTime? DeletedAt, DateTime CreateAt, DateTime? UpdateAt, bool IsLocked, string? AffiliateLink, DateTime? ScheduledAt = null);
 public sealed record AdminStoryListQuery(int Page = 1, int PageSize = 20, string? Search = null, string? Status = null, bool IncludeDeleted = false, string Sort = "createdAt", bool Desc = true) : IRequest<PagedResult<AdminStoryDto>>;
 public sealed record AdminStoryByIdQuery(int Id, bool IncludeDeleted = false) : IRequest<AdminStoryDto>;
 public sealed record CreateAdminStoryCommand(string Title, string? Slug, string Description, string? CoverImageUrl, string? AuthorName, IReadOnlyList<string>? Genres) : IRequest<AdminStoryDto>;
@@ -20,8 +20,8 @@ public sealed record DeleteAdminStoryCommand(int Id, int Version) : IRequest;
 public sealed record RestoreAdminStoryCommand(int Id, int Version) : IRequest<AdminStoryDto>;
 public sealed record AdminChapterListQuery(int StoryId, int Page = 1, int PageSize = 20, string? Search = null, string? Status = null, bool IncludeDeleted = false, string Sort = "chapterNumber", bool Desc = false) : IRequest<PagedResult<AdminChapterDto>>;
 public sealed record AdminChapterByIdQuery(int StoryId, int Id, bool IncludeDeleted = false) : IRequest<AdminChapterDto>;
-public sealed record CreateAdminChapterCommand(int StoryId, int ChapterNumber, string Title, string? Slug, string Content) : IRequest<AdminChapterDto>;
-public sealed record UpdateAdminChapterCommand(int StoryId, int Id, int ChapterNumber, string Title, string? Slug, string Content, int Version) : IRequest<AdminChapterDto>;
+public sealed record CreateAdminChapterCommand(int StoryId, int ChapterNumber, string Title, string? Slug, string Content, bool IsLocked = false, string? AffiliateLink = null) : IRequest<AdminChapterDto>;
+public sealed record UpdateAdminChapterCommand(int StoryId, int Id, int ChapterNumber, string Title, string? Slug, string Content, int Version, bool IsLocked = false, string? AffiliateLink = null) : IRequest<AdminChapterDto>;
 public sealed record DeleteAdminChapterCommand(int StoryId, int Id, int Version) : IRequest;
 public sealed record RestoreAdminChapterCommand(int StoryId, int Id, int Version) : IRequest<AdminChapterDto>;
 
@@ -277,7 +277,7 @@ public sealed class AdminContentHandler :
         var story = await Story(request.StoryId, false, ct);
         if (await _db.Chapters.AnyAsync(x => x.StoryId == request.StoryId && x.ChapterNumber == request.ChapterNumber, ct)) throw Bad("CHAPTER_NUMBER_CONFLICT", "Chapter number is already in use.", 409);
         var slug = await UniqueChapterSlug(request.StoryId, request.Slug, request.Title, ct);
-        var chapter = new Chapter { StoryId = request.StoryId };
+        var chapter = new Chapter { StoryId = request.StoryId, IsLocked = request.IsLocked, AffiliateLink = request.AffiliateLink };
         chapter.UpdateContent(request.ChapterNumber, request.Title, slug, sanitized, DateTime.UtcNow);
         _db.Chapters.Add(chapter);
         
@@ -329,6 +329,8 @@ public sealed class AdminContentHandler :
         if (chapter.ChapterNumber != request.ChapterNumber) changedFields.Add("ChapterNumber");
         if (chapter.Title != request.Title.Trim()) changedFields.Add("Title");
         if (chapter.Slug != slug) changedFields.Add("Slug");
+        if (chapter.IsLocked != request.IsLocked) changedFields.Add("IsLocked");
+        if (chapter.AffiliateLink != request.AffiliateLink) changedFields.Add("AffiliateLink");
         
         var contentChanged = chapter.Content != sanitized;
         if (contentChanged) changedFields.Add("Content");
@@ -344,6 +346,8 @@ public sealed class AdminContentHandler :
         };
 
         chapter.UpdateContent(request.ChapterNumber, request.Title, slug, sanitized!, DateTime.UtcNow);
+        chapter.IsLocked = request.IsLocked;
+        chapter.AffiliateLink = request.AffiliateLink;
 
         await _auditWriter.WriteAsync(new AuditEvent(
             Action: "CHAPTER_UPDATED",
@@ -520,7 +524,7 @@ public sealed class AdminContentHandler :
     private async Task Save(CancellationToken ct) { try { await _db.SaveChangesAsync(ct); } catch (DbUpdateConcurrencyException) { throw Bad("CONCURRENCY_CONFLICT", "This record was changed by another request.", 409); } }
     private static AppException Bad(string code, string detail, int status = 400) => new(code, status, status == 404 ? "Not found" : status == 409 ? "Conflict" : "Validation failed", detail);
     private static AdminStoryDto StoryDto(Story story) => new(story.Id, story.Title, story.Slug, story.Description, story.CoverImageUrl, story.AuthorName, story.Genres.OrderBy(x => x.Name).Select(x => x.Name).ToList(), story.Status.ToString(), story.Version, story.PublishedAt, story.DeletedAt, story.CreateAt, story.UpdateAt, story.ScheduledAt);
-    private static AdminChapterDto ChapterDto(Chapter chapter) => new(chapter.Id, chapter.StoryId, chapter.ChapterNumber, chapter.Title ?? string.Empty, chapter.Slug, chapter.Content ?? string.Empty, chapter.Status.ToString(), chapter.Version, chapter.PublishedAt, chapter.DeletedAt, chapter.CreateAt, chapter.UpdateAt, chapter.ScheduledAt);
+    private static AdminChapterDto ChapterDto(Chapter chapter) => new(chapter.Id, chapter.StoryId, chapter.ChapterNumber, chapter.Title ?? string.Empty, chapter.Slug, chapter.Content ?? string.Empty, chapter.Status.ToString(), chapter.Version, chapter.PublishedAt, chapter.DeletedAt, chapter.CreateAt, chapter.UpdateAt, chapter.IsLocked, chapter.AffiliateLink, chapter.ScheduledAt);
 
     private async Task ApplyGenresToStory(Story story, IReadOnlyList<string>? requestedGenres, CancellationToken ct)
     {

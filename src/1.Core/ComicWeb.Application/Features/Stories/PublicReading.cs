@@ -16,7 +16,7 @@ public sealed record PublicStoryListItemDto(int Id, string Slug, string Title, s
 public sealed record PublicStoryDetailDto(int Id, string Slug, string Title, string Description, string CoverUrl, string? AuthorName, string Status, IReadOnlyList<string> Genres, DateTime? PublishedAt, DateTime? UpdatedAt, IReadOnlyList<PublicChapterSummaryDto> Chapters);
 public sealed record PublicStoryReferenceDto(int Id, string Slug, string Title);
 public sealed record ChapterNavigationDto(string Slug, int Number, string Title);
-public sealed record PublicChapterDetailDto(int Id, PublicStoryReferenceDto Story, string Slug, int Number, string Title, string Content, ChapterNavigationDto? PreviousChapter, ChapterNavigationDto? NextChapter, DateTime? PublishedAt);
+public sealed record PublicChapterDetailDto(int Id, PublicStoryReferenceDto Story, string Slug, int Number, string Title, string Content, ChapterNavigationDto? PreviousChapter, ChapterNavigationDto? NextChapter, DateTime? PublishedAt, bool IsLocked = false, string? AffiliateLink = null);
 public sealed record GenreListItemDto(int Id, string Name, string Slug, bool IsActive, int StoryCount);
 public sealed record GetPublishedStoriesQuery(int Page = 1, int PageSize = 20, string? Query = null, string? Author = null, string? Genre = null, string Sort = "-updatedAt") : IRequest<PagedResult<PublicStoryListItemDto>>;
 public sealed record GetGenresQuery() : IRequest<IReadOnlyList<GenreListItemDto>>;
@@ -217,7 +217,7 @@ public sealed class PublicReadingHandler :
         if (chapter is null) throw NotFound("CHAPTER_NOT_FOUND", "Chapter was not found.");
         var previous = await FindNavigation(chapter.StoryId, chapter.ChapterNumber, true, ct);
         var next = await FindNavigation(chapter.StoryId, chapter.ChapterNumber, false, ct);
-        return new(chapter.Id, new(chapter.Story.Id, chapter.Story.Slug, chapter.Story.Title), chapter.Slug, chapter.ChapterNumber, chapter.Title!, chapter.Content!, previous, next, chapter.PublishedAt);
+        return new(chapter.Id, new(chapter.Story.Id, chapter.Story.Slug, chapter.Story.Title), chapter.Slug, chapter.ChapterNumber, chapter.Title!, chapter.Content!, previous, next, chapter.PublishedAt, chapter.IsLocked, chapter.AffiliateLink);
     }
 
     private IQueryable<Story> BuildPublicStoriesQuery(GetPublishedStoriesQuery request)

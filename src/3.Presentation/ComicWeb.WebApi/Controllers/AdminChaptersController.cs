@@ -36,14 +36,14 @@ public sealed class AdminChaptersController : BaseApiController
     [HttpPost]
     public async Task<ActionResult<ApiEnvelope<AdminChapterDto>>> Create(int storyId, ChapterUpsertRequest body)
     {
-        var result = await Mediator.Send(new CreateAdminChapterCommand(storyId, body.ChapterNumber, body.Title, body.Slug, body.Content));
+        var result = await Mediator.Send(new CreateAdminChapterCommand(storyId, body.ChapterNumber, body.Title, body.Slug, body.Content, body.IsLocked, body.AffiliateLink));
         return CreatedAtAction(nameof(Get), new { storyId, id = result.Id }, new ApiEnvelope<AdminChapterDto>(result, RequestId()));
     }
 
     [HttpPut("{id:int}")]
     public async Task<ActionResult<ApiEnvelope<AdminChapterDto>>> Update(int storyId, int id, ChapterUpsertRequest body)
     {
-        var result = await Mediator.Send(new UpdateAdminChapterCommand(storyId, id, body.ChapterNumber, body.Title, body.Slug, body.Content, RequireVersion(body.Version)));
+        var result = await Mediator.Send(new UpdateAdminChapterCommand(storyId, id, body.ChapterNumber, body.Title, body.Slug, body.Content, RequireVersion(body.Version), body.IsLocked, body.AffiliateLink));
         return Ok(new ApiEnvelope<AdminChapterDto>(result, RequestId()));
     }
 
