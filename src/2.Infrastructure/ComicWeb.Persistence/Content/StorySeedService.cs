@@ -30,11 +30,14 @@ public sealed class StorySeedService(IServiceScopeFactory scopeFactory, ILogger<
             var db = scope.ServiceProvider.GetRequiredService<DbContextOptions<ComicWeb.Persistence.Contexts.ApplicationDbContext>>();
             await using var context = new ComicWeb.Persistence.Contexts.ApplicationDbContext(db);
 
-            // Wipes the old seeded stories if they contain the old short placeholder or old C# hardcoded content
+            // Wipes the old seeded stories if they contain the old short placeholder or if database has corrupt/incomplete stories
             var firstChapter = await context.Chapters.FirstOrDefaultAsync(cancellationToken);
-            if (firstChapter != null && (firstChapter.Content.Contains("Đây là nội dung chương 1 của bộ truyện") || firstChapter.Content.Contains("Ánh trăng vằng vặc")))
+            var storyCount = await context.Stories.CountAsync(cancellationToken);
+            var hasCorruptStories = await context.Stories.AnyAsync(s => string.IsNullOrEmpty(s.Slug), cancellationToken);
+
+            if (hasCorruptStories || (storyCount > 0 && firstChapter == null) || (firstChapter != null && (firstChapter.Content.Contains("Đây là nội dung chương 1 của bộ truyện") || firstChapter.Content.Contains("Ánh trăng vằng vặc"))))
             {
-                logger.LogInformation("Detected old database seed. Wiping stories and re-seeding with resource template...");
+                logger.LogInformation("Wiping stories and chapters for clean seed...");
                 context.Chapters.RemoveRange(context.Chapters);
                 context.Stories.RemoveRange(context.Stories);
                 await context.SaveChangesAsync(cancellationToken);
