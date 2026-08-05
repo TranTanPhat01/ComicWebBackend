@@ -1,4 +1,4 @@
-﻿using ComicWeb.Application.Common.Interface;
+using ComicWeb.Application.Common.Interface;
 using ComicWeb.Domain.Entities;
 using ComicWeb.Domain.Enums;
 using MediatR;
@@ -10,7 +10,12 @@ using System.Threading.Tasks;
 
 namespace ComicWeb.Application.Features.Stories.Commands
 {
-    public record CreateStoryCommand(string Title, string Description, string CoverImageUrl) : IRequest<int>;
+    public record CreateStoryCommand(
+        string Title,
+        string Description,
+        string CoverImageUrl,
+        string AuthorName = ""
+    ) : IRequest<int>;
 
     public class CreateStoryCommandHandler : IRequestHandler<CreateStoryCommand, int>
     {
@@ -28,9 +33,7 @@ namespace ComicWeb.Application.Features.Stories.Commands
                 Title = request.Title,
                 Description = request.Description,
                 CoverImageUrl = request.CoverImageUrl,
-
-                // XÓA DÒNG CŨ: Status = "Đang tiến hành"
-                // SỬA THÀNH DÒNG MỚI:
+                AuthorName = request.AuthorName,
                 Status = StoryStatus.Draft
             };
 

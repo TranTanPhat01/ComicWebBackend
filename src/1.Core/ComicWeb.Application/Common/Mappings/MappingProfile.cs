@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using ComicWeb.Application.Dtos;
 using ComicWeb.Domain.Entities;
 using System;
@@ -13,13 +13,14 @@ namespace ComicWeb.Application.Common.Mappings
     {
         public MappingProfile()
         {
-            // Cấu hình map tự động từ Entity sang DTO gọn nhẹ
-            // AutoMapper tự hiểu cách chuyển Enum Status thành String tương ứng
-            CreateMap<Story, StoryDto>();
+            // Map Story -> StoryDto, converting Status enum to string explicitly
+            CreateMap<Story, StoryDto>()
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
 
             CreateMap<Chapter, ChapterListDto>();
 
-            CreateMap<Story, StoryDetailDto>();
+            CreateMap<Story, StoryDetailDto>()
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
         }
 
     }

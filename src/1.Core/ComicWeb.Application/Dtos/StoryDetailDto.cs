@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,6 +11,7 @@ namespace ComicWeb.Application.Dtos
         string Title,
         string Description,
         string CoverImageUrl,
+        string AuthorName,
         string Status,
         List<ChapterListDto> Chapters
         );
