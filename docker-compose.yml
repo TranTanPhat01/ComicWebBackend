@@ -16,6 +16,17 @@ services:
       timeout: 3s
       retries: 20
       start_period: 10s
+  redis:
+    image: redis:7-alpine
+    container_name: comicweb-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+    restart: always
 
   comicweb-api:
     container_name: comicweb-api
@@ -26,6 +37,7 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=ComicWeb;Username=postgres;Password=123456
+      ConnectionStrings__RedisConnection: redis:6379,abortConnect=false
       Jwt__Issuer: ComicWeb
       Jwt__Audience: ComicWebFrontend
       Jwt__SigningKey: ComicWeb-Development-JWT-Signing-Key-2026-At-Least-64-Characters-123456
@@ -44,6 +56,8 @@ services:
       - "8080:8080"
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     restart: on-failure
 

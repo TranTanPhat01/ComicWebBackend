@@ -208,6 +208,24 @@ static void ConfigureRateLimiting(WebApplicationBuilder builder)
                         QueueLimit = 0
                     });
             });
+
+        options.AddPolicy(
+            "public-reading",
+            context =>
+            {
+                var partitionKey =
+                    context.Connection.RemoteIpAddress?.ToString()
+                    ?? "unknown";
+
+                return RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey,
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = limits.PublicReadingRequestsPerMinute,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 0
+                    });
+            });
     });
 }
 

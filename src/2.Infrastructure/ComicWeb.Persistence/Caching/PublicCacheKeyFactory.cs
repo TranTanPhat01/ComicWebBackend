@@ -26,12 +26,12 @@ public sealed class PublicCacheKeyFactory : IPublicCacheKeyFactory
         return $"comicweb:v1:story:{storySlug.Trim().ToLowerInvariant()}";
     }
 
-    public string CreateChapterListKey(string storySlug, int page, int pageSize, string sort)
+    public string CreateChapterListKey(string storySlug, int? lastChapterNumber, int pageSize)
     {
         var normalizedSlug = storySlug.Trim().ToLowerInvariant();
-        var normalizedSort = sort.Trim().ToLowerInvariant();
+        var cursorVal = lastChapterNumber?.ToString() ?? "start";
         
-        var input = $"page:{page}|size:{pageSize}|s:{normalizedSort}";
+        var input = $"cursor:{cursorVal}|size:{pageSize}";
         using var sha = SHA256.Create();
         var hashBytes = sha.ComputeHash(Encoding.UTF8.GetBytes(input));
         var hash = Convert.ToHexString(hashBytes).ToLowerInvariant();

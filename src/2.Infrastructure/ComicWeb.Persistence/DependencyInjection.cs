@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ComicWeb.Persistence.Auth;
 using ComicWeb.Persistence.Content;
 using Microsoft.Extensions.Options;
+using StackExchange.Redis;
 
 namespace ComicWeb.Persistence;
 
@@ -25,6 +26,24 @@ public static class DependencyInjection
 
         services.AddScoped<IApplicationDbContext>(
             provider => provider.GetRequiredService<ApplicationDbContext>());
+
+        var readOnlyConnectionString = configuration.GetConnectionString("ReadOnlyConnection");
+        if (!string.IsNullOrWhiteSpace(readOnlyConnectionString))
+        {
+            services.AddDbContext<ReadOnlyApplicationDbContext>(
+                options => options.UseNpgsql(
+                    readOnlyConnectionString,
+                    npgsql => npgsql.MigrationsAssembly(
+                        typeof(ApplicationDbContext).Assembly.FullName)));
+
+            services.AddScoped<IReadOnlyApplicationDbContext>(
+                provider => provider.GetRequiredService<ReadOnlyApplicationDbContext>());
+        }
+        else
+        {
+            services.AddScoped<IReadOnlyApplicationDbContext>(
+                provider => provider.GetRequiredService<ApplicationDbContext>());
+        }
 
         services.AddScoped<IAuthRepository, AuthRepository>();
         services.AddSingleton<IPasswordHasher, BcryptPasswordHasher>();
@@ -80,10 +99,30 @@ public static class DependencyInjection
                 "Public cache TTL and MaxEntrySize must be greater than zero.")
             .ValidateOnStart();
 
-        services.AddSingleton<ComicWeb.Application.Common.Interfaces.IPublicContentCache, Caching.PublicContentCache>();
         services.AddSingleton<ComicWeb.Application.Common.Interfaces.IPublicCacheKeyFactory, Caching.PublicCacheKeyFactory>();
         services.AddSingleton<ComicWeb.Application.Common.Interfaces.IPublicContentCacheInvalidator, Caching.PublicContentCacheInvalidator>();
         services.AddSingleton<ComicWeb.Application.Common.Caching.KeyedLockManager>();
+        services.AddSingleton<ComicWeb.Application.Common.Interfaces.ICdnCachePurger, Caching.LoggingCdnCachePurger>();
+
+        var redisConnectionString = configuration.GetConnectionString("RedisConnection");
+        if (!string.IsNullOrWhiteSpace(redisConnectionString))
+        {
+            try
+            {
+                var connection = ConnectionMultiplexer.Connect(redisConnectionString);
+                services.AddSingleton<IConnectionMultiplexer>(connection);
+                services.AddSingleton<ComicWeb.Application.Common.Interfaces.IPublicContentCache, Caching.RedisContentCache>();
+            }
+            catch (Exception)
+            {
+                // Fallback to local memory cache if connection fails
+                services.AddSingleton<ComicWeb.Application.Common.Interfaces.IPublicContentCache, Caching.PublicContentCache>();
+            }
+        }
+        else
+        {
+            services.AddSingleton<ComicWeb.Application.Common.Interfaces.IPublicContentCache, Caching.PublicContentCache>();
+        }
 
         services.AddHostedService<AdminBootstrapService>();
         services.AddHostedService<GenreSeedService>();

@@ -146,4 +146,5 @@ D:\Hai\ComicWebBackend\src\3.Presentation\ComicWeb.WebApi\obj\Debug\net9.0\Comic
 D:\Hai\ComicWebBackend\src\3.Presentation\ComicWeb.WebApi\bin\Debug\net9.0\AngleSharp.dll
 D:\Hai\ComicWebBackend\src\3.Presentation\ComicWeb.WebApi\bin\Debug\net9.0\AngleSharp.Css.dll
 D:\Hai\ComicWebBackend\src\3.Presentation\ComicWeb.WebApi\bin\Debug\net9.0\HtmlSanitizer.dll
-D:\Hai\ComicWebBackend\src\3.Presentation\ComicWeb.WebApi\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt
+D:\Hai\ComicWebBackend\src\3.Presentation\ComicWeb.WebApi\bin\Debug\net9.0\Pipelines.Sockets.Unofficial.dll
+D:\Hai\ComicWebBackend\src\3.Presentation\ComicWeb.WebApi\bin\Debug\net9.0\StackExchange.Redis.dll

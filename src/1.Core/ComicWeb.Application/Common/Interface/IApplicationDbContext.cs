@@ -8,16 +8,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ComicWeb.Application.Common.Interface
 {
-    public interface IApplicationDbContext
+    public interface IApplicationDbContext : IReadOnlyApplicationDbContext
     {
-        DbSet<Story> Stories { get; }
-        DbSet<Chapter> Chapters { get; }
-        DbSet<Genre> Genres { get; }
-        DbSet<SystemLog> SystemLogs { get; }
-        DbSet<UserNotification> UserNotifications { get; }
-        DbSet<User> Users { get; }
-        DbSet<AuditLog> AuditLogs { get; }
-
         Task<int> SaveChangesAsync(CancellationToken cancellationToken);
     }
 }

@@ -11,6 +11,7 @@ public sealed class AuthenticationSecurityOptions
     public int LoginRequestsPerMinute { get; init; } = 5;
     public int LoginRequestsPerHour { get; init; } = 20;
     public int RefreshRequestsPerMinute { get; init; } = 10;
+    public int PublicReadingRequestsPerMinute { get; init; } = 60;
 }
 
 public sealed class AuthenticationSecurityPolicy(IOptions<AuthenticationSecurityOptions> options) : IAuthenticationSecurityPolicy
