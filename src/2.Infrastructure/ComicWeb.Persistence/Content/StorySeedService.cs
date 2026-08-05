@@ -10,6 +10,23 @@ namespace ComicWeb.Persistence.Content;
 
 public sealed class StorySeedService(IServiceScopeFactory scopeFactory, ILogger<StorySeedService> logger) : IHostedService
 {
+    private static string GetChapterContent(string storyTitle, int chapterNumber)
+    {
+        return $@"
+            <p>Ánh trăng vằng vặc rọi xuống đầu ngõ nhỏ, kéo dài bóng của những hàng cây cổ thụ già cỗi. Đêm đông lạnh buốt, gió rít qua khe cửa sổ tạo nên âm thanh u uất. Trong căn phòng tĩnh mịch, chỉ còn tiếng tích tắc đều đặn của chiếc đồng hồ treo tường và hơi thở nhè nhẹ đầy mệt mỏi.</p>
+            
+            <p>Đây là chương thứ {chapterNumber} của câu chuyện kỳ thú mang tên <strong>{storyTitle}</strong>. Mọi nút thắt cốt truyện bắt đầu được hé lộ từ đây. Những mối ân oán tình thù đan xen giữa các thế lực lớn, những mưu đồ sâu kín của kẻ địch ngỡ như hoàn hảo nay bắt đầu xuất hiện những vết rạn nứt đầu tiên.</p>
+            
+            <p>Nhân vật chính khẽ thở dài, tay nắm chặt cốc trà nóng đã nguội lạnh từ lâu. Trong đầu anh hiện lên muôn vàn ký ức hỗn độn của những ngày tháng gian khổ đã qua. Từ một kẻ vô danh bị người đời khinh rẻ, trải qua bao sóng gió, nay anh đã đứng trước ngưỡng cửa của sự thay đổi vận mệnh lớn lao. Nhưng cái giá phải trả cho quyền lực và danh vọng chưa bao giờ là rẻ.</p>
+            
+            <blockquote>""Mỗi con đường chúng ta chọn đi qua đều để lại dấu chân sâu đậm. Dẫu có trắc trở ngàn trùng, việc quay đầu chưa bao giờ nằm trong suy nghĩ của ta.""</blockquote>
+            
+            <p>Phía xa xa, tiếng vó ngựa dồn dập vang lên phá tan bầu không khí yên lặng của màn đêm. Bụi cuốn mù mịt dưới ánh đuốc bập bùng. Tiếng hô hoán của quân lính, tiếng binh khí va chạm chan chát vang lên từ phía cổng thành. Cuộc chiến sinh tử cận kề buộc tất cả những người trong cuộc phải đưa ra lựa chọn cuối cùng.</p>
+            
+            <p>Anh đứng dậy, bước ra ngoài ban công, gió thổi lộng làm tà áo tung bay. Đôi mắt anh sâu thẳm nhìn về phía chân trời xa xăm, nơi những ánh lửa đỏ rực đang nhuộm màu cả góc trời đêm. Hành trình này chỉ mới bắt đầu, và những thử thách phía trước chắc chắn sẽ còn cam go hơn gấp bội lần.</p>
+        ";
+    }
+
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         try
@@ -17,6 +34,16 @@ public sealed class StorySeedService(IServiceScopeFactory scopeFactory, ILogger<
             using var scope = scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<DbContextOptions<ComicWeb.Persistence.Contexts.ApplicationDbContext>>();
             await using var context = new ComicWeb.Persistence.Contexts.ApplicationDbContext(db);
+
+            // Wipes the old seeded stories if they contain the old short placeholder
+            var firstChapter = await context.Chapters.FirstOrDefaultAsync(cancellationToken);
+            if (firstChapter != null && firstChapter.Content.Contains("Đây là nội dung chương 1 của bộ truyện"))
+            {
+                logger.LogInformation("Detected old short placeholder chapters. Wiping stories and re-seeding...");
+                context.Chapters.RemoveRange(context.Chapters);
+                context.Stories.RemoveRange(context.Stories);
+                await context.SaveChangesAsync(cancellationToken);
+            }
 
             // Check if database has any stories already
             var count = await context.Stories.AsNoTracking().CountAsync(cancellationToken);
@@ -141,7 +168,7 @@ public sealed class StorySeedService(IServiceScopeFactory scopeFactory, ILogger<
                         ChapterNumber = i,
                         Title = $"Chương {i}: Khởi đầu hành trình mới",
                         Slug = $"chuong-{i}",
-                        Content = $"<p>Đây là nội dung chương {i} của bộ truyện <strong>{item.Title}</strong>.</p><p>Nội dung câu chuyện vô cùng kịch tính và hấp dẫn, độc giả sẽ được trải qua những cung bậc cảm xúc thăng trầm cùng các nhân vật chính trong tác phẩm.</p><p>ComicWeb chúc các bạn đọc truyện vui vẻ!</p>",
+                        Content = GetChapterContent(item.Title, i),
                         IsLocked = i > 3, // Lock chapters after chapter 3 to test VIP locking features
                         CreatedAt = now.AddDays(-30 + i),
                         UpdateAt = now
