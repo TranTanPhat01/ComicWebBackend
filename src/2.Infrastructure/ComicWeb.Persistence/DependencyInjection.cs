@@ -126,6 +126,7 @@ public static class DependencyInjection
 
         services.AddHostedService<AdminBootstrapService>();
         services.AddHostedService<GenreSeedService>();
+        services.AddHostedService<StorySeedService>();
 
         return services;
     }
