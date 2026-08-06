@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ComicWeb.Persistence")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+98f5799b1fcf3fe2c60b41ee67e8ce209163e0bb")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8efd1161e41fd91dab3f42fb2375e909a08c9ca2")]
 [assembly: System.Reflection.AssemblyProductAttribute("ComicWeb.Persistence")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ComicWeb.Persistence")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

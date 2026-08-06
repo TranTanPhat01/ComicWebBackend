@@ -546,20 +546,27 @@ public sealed class AdminContentHandler :
             return;
         }
 
-        var existingGenres = await _db.Genres.Where(x => x.IsActive && normalized.Contains(x.Name)).ToListAsync(ct);
-        var existingNames = existingGenres.Select(x => x.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var normalizedSlugs = normalized.Select(x => x.ToLowerInvariant().Replace(" ", "-")).ToList();
+        var existingGenres = await _db.Genres.Where(x => normalizedSlugs.Contains(x.Slug)).ToListAsync(ct);
+        var existingSlugs = existingGenres.Select(x => x.Slug).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         foreach (var name in normalized)
         {
-            if (existingNames.Contains(name))
+            var slug = name.ToLowerInvariant().Replace(" ", "-");
+            if (existingSlugs.Contains(slug))
             {
+                var existing = existingGenres.First(x => string.Equals(x.Slug, slug, StringComparison.OrdinalIgnoreCase));
+                if (!existing.IsActive)
+                {
+                    existing.IsActive = true;
+                }
                 continue;
             }
 
-            var genre = new Genre { Name = name, Slug = name.ToLowerInvariant().Replace(" ", "-"), IsActive = true };
+            var genre = new Genre { Name = name, Slug = slug, IsActive = true };
             _db.Genres.Add(genre);
             existingGenres.Add(genre);
-            existingNames.Add(name);
+            existingSlugs.Add(slug);
         }
 
         foreach (var genre in existingGenres)
