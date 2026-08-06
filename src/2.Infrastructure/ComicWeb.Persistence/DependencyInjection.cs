@@ -51,6 +51,9 @@ public static class DependencyInjection
         services.AddSingleton<ITokenService, JwtTokenService>();
         services.AddSingleton<ISlugGenerator, VietnameseSlugGenerator>();
         services.AddSingleton<IHtmlContentSanitizer, Content.HtmlContentSanitizer>();
+        services.AddScoped<IScraperService, Content.ScraperService>();
+        services.AddScoped<IScraperEngine, Content.Engines.NguonTruyenEngine>();
+        services.AddScoped<IScraperEngine, Content.Engines.TruyenFullEngine>();
 
         services.AddOptions<AuthenticationSecurityOptions>()
             .Bind(configuration.GetSection(AuthenticationSecurityOptions.SectionName))

@@ -148,3 +148,4 @@ D:\Hai\ComicWebBackend\src\3.Presentation\ComicWeb.WebApi\bin\Debug\net9.0\Angle
 D:\Hai\ComicWebBackend\src\3.Presentation\ComicWeb.WebApi\bin\Debug\net9.0\HtmlSanitizer.dll
 D:\Hai\ComicWebBackend\src\3.Presentation\ComicWeb.WebApi\bin\Debug\net9.0\Pipelines.Sockets.Unofficial.dll
 D:\Hai\ComicWebBackend\src\3.Presentation\ComicWeb.WebApi\bin\Debug\net9.0\StackExchange.Redis.dll
+D:\Hai\ComicWebBackend\src\3.Presentation\ComicWeb.WebApi\bin\Debug\net9.0\HtmlAgilityPack.dll

@@ -8,9 +8,10 @@
     ".NETCoreApp,Version=v9.0": {
       "ComicWeb.Application/1.0.0": {
         "dependencies": {
-          "AutoMapper": "15.1.3",
+          "AutoMapper": "12.0.1",
           "AutoMapper.Extensions.Microsoft.DependencyInjection": "12.0.0",
           "ComicWeb.Domain": "1.0.0",
+          "HtmlAgilityPack": "1.12.4",
           "MediatR": "14.2.0",
           "MediatR.Extensions.Microsoft.DependencyInjection": "11.0.0",
           "Microsoft.EntityFrameworkCore": "8.0.11"
@@ -19,28 +20,31 @@
           "ComicWeb.Application.dll": {}
         }
       },
-      "AutoMapper/15.1.3": {
-        "dependencies": {
-          "Microsoft.Extensions.Logging.Abstractions": "10.0.0",
-          "Microsoft.Extensions.Options": "8.0.2",
-          "Microsoft.IdentityModel.JsonWebTokens": "8.14.0"
-        },
+      "AutoMapper/12.0.1": {
         "runtime": {
-          "lib/net9.0/AutoMapper.dll": {
-            "assemblyVersion": "15.0.0.0",
-            "fileVersion": "15.1.3.0"
+          "lib/netstandard2.1/AutoMapper.dll": {
+            "assemblyVersion": "12.0.0.0",
+            "fileVersion": "12.0.1.0"
           }
         }
       },
       "AutoMapper.Extensions.Microsoft.DependencyInjection/12.0.0": {
         "dependencies": {
-          "AutoMapper": "15.1.3",
+          "AutoMapper": "12.0.1",
           "Microsoft.Extensions.Options": "8.0.2"
         },
         "runtime": {
           "lib/netstandard2.1/AutoMapper.Extensions.Microsoft.DependencyInjection.dll": {
             "assemblyVersion": "12.0.0.0",
             "fileVersion": "12.0.0.0"
+          }
+        }
+      },
+      "HtmlAgilityPack/1.12.4": {
+        "runtime": {
+          "lib/net7.0/HtmlAgilityPack.dll": {
+            "assemblyVersion": "1.12.4.0",
+            "fileVersion": "1.12.4.0"
           }
         }
       },
@@ -255,12 +259,12 @@
       "serviceable": false,
       "sha512": ""
     },
-    "AutoMapper/15.1.3": {
+    "AutoMapper/12.0.1": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-PEvv0zFa2qpsCqQQt2mmjXKaKaSff70Nrdu2vo953XtMke2ZASM9KDwlrKcH9xWOUFcR0IOaLXyL/aNnuhyTFQ==",
-      "path": "automapper/15.1.3",
-      "hashPath": "automapper.15.1.3.nupkg.sha512"
+      "sha512": "sha512-hvV62vl6Hp/WfQ24yzo3Co9+OPl8wH8hApwVtgWpiAynVJkUcs7xvehnSftawL8Pe8FrPffBRM3hwzLQqWDNjA==",
+      "path": "automapper/12.0.1",
+      "hashPath": "automapper.12.0.1.nupkg.sha512"
     },
     "AutoMapper.Extensions.Microsoft.DependencyInjection/12.0.0": {
       "type": "package",
@@ -268,6 +272,13 @@
       "sha512": "sha512-XCJ4E3oKrbRl1qY9Mr+7uyC0xZj1+bqQjmQRWTiTKiVuuXTny+7YFWHi20tPjwkMukLbicN6yGlDy5PZ4wyi1w==",
       "path": "automapper.extensions.microsoft.dependencyinjection/12.0.0",
       "hashPath": "automapper.extensions.microsoft.dependencyinjection.12.0.0.nupkg.sha512"
+    },
+    "HtmlAgilityPack/1.12.4": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-ljqvBabvFwKoLniuoQKO8b5bJfJweKLs4fUNS/V5dsvpo0A8MlJqxxn9XVmP2DaskbUXty6IYaWAi1SArGIMeQ==",
+      "path": "htmlagilitypack/1.12.4",
+      "hashPath": "htmlagilitypack.1.12.4.nupkg.sha512"
     },
     "MediatR/14.2.0": {
       "type": "package",
