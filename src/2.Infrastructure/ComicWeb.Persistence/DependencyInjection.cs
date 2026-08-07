@@ -1,4 +1,5 @@
 using ComicWeb.Application.Common.Interface;
+using ComicWeb.Application.Common.Interfaces;
 using ComicWeb.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -71,6 +72,20 @@ public static class DependencyInjection
 
         services.AddSingleton<IAuthenticationSecurityPolicy, AuthenticationSecurityPolicy>();
 
+        // Register Storage Configurations and Services
+        var storageSection = configuration.GetSection(StorageOptions.SectionName);
+        services.Configure<StorageOptions>(storageSection);
+        
+        var storageOptions = storageSection.Get<StorageOptions>() ?? new StorageOptions();
+        if (storageOptions.Provider.Equals("Cloudinary", StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddScoped<IImageStorageService, CloudinaryImageStorageService>();
+        }
+        else
+        {
+            services.AddScoped<IImageStorageService, LocalImageStorageService>();
+        }
+
         services.AddOptions<JwtOptions>()
             .Bind(configuration.GetSection(JwtOptions.SectionName))
             .Validate(
@@ -133,6 +148,10 @@ public static class DependencyInjection
         services.AddHostedService<AdminBootstrapService>();
         services.AddHostedService<GenreSeedService>();
         services.AddHostedService<StorySeedService>();
+
+        // ViewCount: in-memory buffer with periodic flush to DB
+        services.AddSingleton<ComicWeb.Application.Common.Interfaces.IViewCountService, InMemoryViewCountService>();
+        services.AddHostedService<ViewCountFlushWorker>();
 
         return services;
     }

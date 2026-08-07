@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ComicWeb.WebApi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8efd1161e41fd91dab3f42fb2375e909a08c9ca2")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b2262ec6deaad04a63ce274e1dfb260234dd30a4")]
 [assembly: System.Reflection.AssemblyProductAttribute("ComicWeb.WebApi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ComicWeb.WebApi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

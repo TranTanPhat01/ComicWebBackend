@@ -116,14 +116,38 @@ public sealed class GetPublishedStoriesQueryHandler : IRequestHandler<GetPublish
     private IQueryable<Story> BuildPublicStoriesQuery(GetPublishedStoriesQuery request)
     {
         var query = db.Stories.AsNoTracking().Where(IsPublicStory());
-        if (!string.IsNullOrWhiteSpace(request.Query)) { var value = request.Query.Trim().ToLower(); query = query.Where(x => x.Title.ToLower().Contains(value) || x.Slug.ToLower().Contains(value) || (x.AuthorName ?? "").ToLower().Contains(value)); }
-        if (!string.IsNullOrWhiteSpace(request.Author)) { var value = request.Author.Trim().ToLower(); query = query.Where(x => (x.AuthorName ?? "").ToLower().Contains(value)); }
+        if (!string.IsNullOrWhiteSpace(request.Query)) 
+        { 
+            var value = request.Query.Trim().ToLower();
+            if (db is DbContext dbContext && dbContext.Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
+            {
+                query = query.Where(x => x.Title.ToLower().Contains(value) || x.Slug.ToLower().Contains(value) || (x.AuthorName ?? "").ToLower().Contains(value));
+            }
+            else
+            {
+                var valueLike = $"%{request.Query.Trim()}%"; 
+                query = query.Where(x => EF.Functions.ILike(x.Title, valueLike) || x.Slug.ToLower().Contains(value) || EF.Functions.ILike(x.AuthorName ?? "", valueLike)); 
+            }
+        }
+        if (!string.IsNullOrWhiteSpace(request.Author)) 
+        { 
+            var value = request.Author.Trim().ToLower();
+            if (db is DbContext dbContext && dbContext.Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
+            {
+                query = query.Where(x => (x.AuthorName ?? "").ToLower().Contains(value));
+            }
+            else
+            {
+                var valueLike = $"%{request.Author.Trim()}%"; 
+                query = query.Where(x => EF.Functions.ILike(x.AuthorName ?? "", valueLike)); 
+            }
+        }
         if (!string.IsNullOrWhiteSpace(request.Genre)) { var value = request.Genre.Trim(); query = query.Where(x => x.Genres.Any(g => g.Name == value || g.Slug == value)); }
         return request.Sort switch { "title" => query.OrderBy(x => x.Title), "-title" => query.OrderByDescending(x => x.Title), "updatedAt" => query.OrderBy(x => x.UpdateAt), "-updatedAt" => query.OrderByDescending(x => x.UpdateAt), "publishedAt" => query.OrderBy(x => x.PublishedAt), "-publishedAt" => query.OrderByDescending(x => x.PublishedAt), _ => throw InvalidSort() };
     }
 
     private static System.Linq.Expressions.Expression<Func<Story, bool>> IsPublicStory() => x => x.Status == StoryStatus.Published || x.Status == StoryStatus.Completed;
-    private static System.Linq.Expressions.Expression<Func<Story, PublicStoryListItemDto>> ProjectStoryListItem() => x => new(x.Id, x.Slug, x.Title, x.Description, x.CoverImageUrl, x.AuthorName, x.Status.ToString(), x.Genres.OrderBy(g => g.Name).Select(g => g.Name).ToList(), x.Chapters.Count(c => c.Status == ChapterStatus.Published), x.Chapters.Where(c => c.Status == ChapterStatus.Published).OrderByDescending(c => c.ChapterNumber).Select(c => new PublicChapterSummaryDto(c.Id, c.Slug, c.ChapterNumber, c.Title!, c.PublishedAt)).FirstOrDefault(), x.PublishedAt, x.UpdateAt);
+    private static System.Linq.Expressions.Expression<Func<Story, PublicStoryListItemDto>> ProjectStoryListItem() => x => new(x.Id, x.Slug, x.Title, x.Description, x.CoverImageUrl, x.AuthorName, x.Status.ToString(), x.Genres.Where(g => g.IsActive).OrderBy(g => g.Name).Select(g => g.Name).ToList(), x.Chapters.Count(c => c.Status == ChapterStatus.Published), x.Chapters.Where(c => c.Status == ChapterStatus.Published).OrderByDescending(c => c.ChapterNumber).Select(c => new PublicChapterSummaryDto(c.Id, c.Slug, c.ChapterNumber, c.Title!, c.PublishedAt)).FirstOrDefault(), x.PublishedAt, x.UpdateAt);
     private static void ValidatePagination(int page, int pageSize) { if (page < 1 || pageSize is < 1 or > 100) throw new AppException("INVALID_PAGE", 400, "Validation failed", "Invalid pagination."); }
     private static PageMeta CreatePageMeta(int page, int pageSize, int total) => new(page, pageSize, total, (int)Math.Ceiling(total / (double)pageSize));
     private static AppException InvalidSort() => new("INVALID_SORT", 400, "Validation failed", "Invalid sort.");
@@ -200,7 +224,7 @@ public sealed class GetPublishedStoryBySlugQueryHandler : IRequestHandler<GetPub
     }
 
     private static System.Linq.Expressions.Expression<Func<Story, bool>> IsPublicStory() => x => x.Status == StoryStatus.Published || x.Status == StoryStatus.Completed;
-    private static System.Linq.Expressions.Expression<Func<Story, PublicStoryDetailDto>> ProjectStoryDetail() => x => new(x.Id, x.Slug, x.Title, x.Description, x.CoverImageUrl, x.AuthorName, x.Status.ToString(), x.Genres.OrderBy(g => g.Name).Select(g => g.Name).ToList(), x.PublishedAt, x.UpdateAt, x.Chapters.Where(c => c.Status == ChapterStatus.Published).OrderBy(c => c.ChapterNumber).Select(c => new PublicChapterSummaryDto(c.Id, c.Slug, c.ChapterNumber, c.Title!, c.PublishedAt)).ToList(), x.Version);
+    private static System.Linq.Expressions.Expression<Func<Story, PublicStoryDetailDto>> ProjectStoryDetail() => x => new(x.Id, x.Slug, x.Title, x.Description, x.CoverImageUrl, x.AuthorName, x.Status.ToString(), x.Genres.Where(g => g.IsActive).OrderBy(g => g.Name).Select(g => g.Name).ToList(), x.PublishedAt, x.UpdateAt, x.Chapters.Where(c => c.Status == ChapterStatus.Published).OrderBy(c => c.ChapterNumber).Select(c => new PublicChapterSummaryDto(c.Id, c.Slug, c.ChapterNumber, c.Title!, c.PublishedAt)).ToList(), x.Version);
     private static AppException NotFound(string code, string detail) => new(code, 404, "Not found", detail);
 }
 

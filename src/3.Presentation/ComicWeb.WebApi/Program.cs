@@ -11,10 +11,17 @@ using ComicWeb.WebApi.Infrastructure;
 using ComicWeb.WebApi.OpenApi;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// --- Serilog Structured Logging ---
+builder.Host.UseSerilog((context, config) =>
+    config.ReadFrom.Configuration(context.Configuration));
 
 ConfigureCors(builder.Services);
 ConfigureAuthentication(builder);
@@ -23,6 +30,7 @@ ConfigureRateLimiting(builder);
 ConfigureApplicationServices(builder);
 ConfigureControllers(builder.Services);
 ConfigureSwagger(builder.Services);
+ConfigureHealthChecks(builder.Services, builder.Configuration);
 
 var app = builder.Build();
 
@@ -272,6 +280,18 @@ static void ConfigureApplicationServices(
     ConfigureResponseCompression(builder.Services);
 }
 
+static void ConfigureHealthChecks(
+    IServiceCollection services,
+    IConfiguration configuration)
+{
+    services
+        .AddHealthChecks()
+        .AddDbContextCheck<ApplicationDbContext>(
+            name: "database",
+            failureStatus: HealthStatus.Unhealthy,
+            tags: new[] { "ready" });
+}
+
 static void ConfigureResponseCompression(IServiceCollection services)
 {
     services.AddResponseCompression(options =>
@@ -379,11 +399,37 @@ static void ConfigureMiddleware(WebApplication app)
         app.UseHttpsRedirection();
     }
     app.UseResponseCompression();
+    app.UseStaticFiles();
     app.UseCors("NextJsPolicy");
     app.UseRateLimiter();
     app.UseAuthentication();
     app.UseAuthorization();
     app.MapControllers();
+
+    // Health Check endpoints
+    app.MapHealthChecks("/health/live", new HealthCheckOptions
+    {
+        // Liveness: just check the app is running (no dependency checks)
+        Predicate = _ => false,
+        ResultStatusCodes =
+        {
+            [HealthStatus.Healthy] = StatusCodes.Status200OK,
+            [HealthStatus.Degraded] = StatusCodes.Status200OK,
+            [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+        }
+    });
+
+    app.MapHealthChecks("/health/ready", new HealthCheckOptions
+    {
+        // Readiness: check "ready" tagged checks (database)
+        Predicate = check => check.Tags.Contains("ready"),
+        ResultStatusCodes =
+        {
+            [HealthStatus.Healthy] = StatusCodes.Status200OK,
+            [HealthStatus.Degraded] = StatusCodes.Status200OK,
+            [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+        }
+    });
 }
 
 public partial class Program

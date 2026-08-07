@@ -1,6 +1,6 @@
 using ComicWeb.Application.Common.Interfaces;
 using ComicWeb.Application.Dtos;
-using ComicWeb.Application.Features.Stories.Commands;
+using ComicWeb.Application.Features.Stories;
 using ComicWeb.WebApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -59,18 +59,19 @@ namespace ComicWeb.WebApi.Controllers
                 // Step 1: Scrape clean chapter text
                 var cleanHtml = await _scraperService.ScrapeChapterContentAsync(body.Url, cancellationToken);
 
-                // Step 2: Create chapter via mediator
-                var command = new CreateChapterCommand(
+                // Step 2: Create chapter via mediator (using canonical CreateAdminChapterCommand)
+                var command = new CreateAdminChapterCommand(
                     StoryId: storyId,
                     ChapterNumber: body.ChapterNumber,
                     Title: body.Title,
+                    Slug: null,
                     Content: cleanHtml,
-                    AffiliateLink: null,
-                    IsLocked: false
+                    IsLocked: false,
+                    AffiliateLink: null
                 );
 
-                var chapterId = await Mediator.Send(command, cancellationToken);
-                return Ok(new ApiEnvelope<int>(chapterId, RequestId()));
+                var chapter = await Mediator.Send(command, cancellationToken);
+                return Ok(new ApiEnvelope<int>(chapter.Id, RequestId()));
             }
             catch (Exception ex)
             {

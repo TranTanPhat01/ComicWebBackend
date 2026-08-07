@@ -59,7 +59,11 @@ public sealed class AdminGenreManagementHandler :
 
     public async Task Handle(DeleteGenreCommand request, CancellationToken ct)
     {
-        var genre = await _db.Genres.FirstOrDefaultAsync(x => x.Id == request.Id, ct) ?? throw Bad("GENRE_NOT_FOUND", "Genre was not found.", 404);
+        var genre = await _db.Genres.Include(x => x.Stories).FirstOrDefaultAsync(x => x.Id == request.Id, ct) ?? throw Bad("GENRE_NOT_FOUND", "Genre was not found.", 404);
+        if (genre.Stories.Any())
+        {
+            throw Bad("GENRE_IN_USE", $"Cannot delete genre that is in use by {genre.Stories.Count} stories. Deactivate it instead.", 400);
+        }
         _db.Genres.Remove(genre);
         await _db.SaveChangesAsync(ct);
     }

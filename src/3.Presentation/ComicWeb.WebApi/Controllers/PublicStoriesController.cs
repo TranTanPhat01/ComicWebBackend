@@ -1,4 +1,6 @@
 using ComicWeb.Application.Features.Stories;
+using ComicWeb.Application.Features.Settings;
+using ComicWeb.Application.Common.Interfaces;
 using ComicWeb.WebApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,7 +15,7 @@ namespace ComicWeb.WebApi.Controllers;
 [Route("api/v1/stories")]
 [AllowAnonymous]
 [EnableRateLimiting("public-reading")]
-public sealed class PublicStoriesController : BaseApiController
+public sealed class PublicStoriesController(IViewCountService viewCountService) : BaseApiController
 {
     [HttpGet]
     public async Task<IActionResult> List([FromQuery] int page=1,[FromQuery] int pageSize=20,[FromQuery] string? query=null,[FromQuery] string? author=null,[FromQuery] string? genre=null,[FromQuery] string sort="-updatedAt")
@@ -39,6 +41,8 @@ public sealed class PublicStoriesController : BaseApiController
         {
             return actionResult!;
         }
+        // Fire-and-forget view count increment (non-blocking)
+        _ = viewCountService.IncrementAsync(result.Id);
         return Ok(new ApiEnvelope<PublicStoryDetailDto>(result, HttpContext.TraceIdentifier));
     }
 
@@ -62,6 +66,25 @@ public sealed class PublicStoriesController : BaseApiController
             return actionResult!;
         }
         return Ok(new ApiEnvelope<PublicChapterDetailDto>(result, HttpContext.TraceIdentifier));
+    }
+
+    [HttpPost("chapters/{chapterId:int}/track-click")]
+    public async Task<IActionResult> TrackClick(int chapterId)
+    {
+        var ipAddress = Request.Headers["X-Forwarded-For"].FirstOrDefault() 
+                        ?? HttpContext.Connection.RemoteIpAddress?.ToString();
+        var userAgent = Request.Headers["User-Agent"].ToString();
+        var referrer = Request.Headers["Referer"].ToString();
+
+        await Mediator.Send(new TrackAffiliateClickCommand(chapterId, ipAddress, userAgent, referrer));
+        return Ok(new { success = true });
+    }
+
+    [HttpGet("settings")]
+    public async Task<IActionResult> GetSettings()
+    {
+        var result = await Mediator.Send(new GetPublicSettingsQuery());
+        return Ok(new ApiEnvelope<IReadOnlyList<SettingItemDto>>(result, HttpContext.TraceIdentifier));
     }
 
     private bool HandleConditionalGet(int version, DateTime? updatedAt, string cacheControl, string traceId, out IActionResult? actionResult)

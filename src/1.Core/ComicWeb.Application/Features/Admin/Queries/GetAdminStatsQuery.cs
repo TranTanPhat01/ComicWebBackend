@@ -2,6 +2,8 @@ using ComicWeb.Application.Common.Interface;
 using ComicWeb.Application.Dtos;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ComicWeb.Application.Features.Admin.Queries
 {
@@ -25,8 +27,9 @@ namespace ComicWeb.Application.Features.Admin.Queries
             var lockedChapters = await _context.Chapters.CountAsync(c => c.IsLocked, cancellationToken);
             var ongoingStories = await _context.Stories
                 .CountAsync(s => s.Status == ComicWeb.Domain.Enums.StoryStatus.Published, cancellationToken);
+            var totalClicks = await _context.AffiliateClicks.CountAsync(cancellationToken);
 
-            return new AdminStatsDto(totalStories, totalChapters, totalUsers, totalLogs, lockedChapters, ongoingStories);
+            return new AdminStatsDto(totalStories, totalChapters, totalUsers, totalLogs, lockedChapters, ongoingStories, totalClicks);
         }
     }
 }

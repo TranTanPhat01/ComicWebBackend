@@ -14,4 +14,11 @@ public interface IReadOnlyApplicationDbContext
     DbSet<UserNotification> UserNotifications { get; }
     DbSet<User> Users { get; }
     DbSet<AuditLog> AuditLogs { get; }
+    DbSet<AffiliateClick> AffiliateClicks { get; }
+    DbSet<SystemSetting> SystemSettings { get; }
+    DbSet<FollowedStory> FollowedStories { get; }
+    DbSet<ReadingHistory> ReadingHistories { get; }
+    DbSet<StoryRating> StoryRatings { get; }
+    DbSet<Comment> Comments { get; }
+    DbSet<NewsletterSubscriber> NewsletterSubscribers { get; }
 }

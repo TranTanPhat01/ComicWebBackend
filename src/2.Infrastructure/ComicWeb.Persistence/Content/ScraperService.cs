@@ -17,16 +17,18 @@ namespace ComicWeb.Persistence.Content
             _engines = engines;
         }
 
-        public Task<ScrapedStoryMetadataDto> ScrapeStoryMetadataAsync(string storyUrl, CancellationToken ct)
+        public async Task<ScrapedStoryMetadataDto> ScrapeStoryMetadataAsync(string storyUrl, CancellationToken ct)
         {
+            await SsrfValidator.ValidateUrlAsync(storyUrl, ct);
             var engine = GetEngine(storyUrl);
-            return engine.ScrapeStoryMetadataAsync(storyUrl, ct);
+            return await engine.ScrapeStoryMetadataAsync(storyUrl, ct);
         }
 
-        public Task<string> ScrapeChapterContentAsync(string chapterUrl, CancellationToken ct)
+        public async Task<string> ScrapeChapterContentAsync(string chapterUrl, CancellationToken ct)
         {
+            await SsrfValidator.ValidateUrlAsync(chapterUrl, ct);
             var engine = GetEngine(chapterUrl);
-            return engine.ScrapeChapterContentAsync(chapterUrl, ct);
+            return await engine.ScrapeChapterContentAsync(chapterUrl, ct);
         }
 
         private IScraperEngine GetEngine(string url)
