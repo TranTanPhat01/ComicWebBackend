@@ -23,7 +23,8 @@ public static class DependencyInjection
             options => options.UseNpgsql(
                 connectionString,
                 npgsql => npgsql.MigrationsAssembly(
-                    typeof(ApplicationDbContext).Assembly.FullName)));
+                    typeof(ApplicationDbContext).Assembly.FullName)
+                .UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
 
         services.AddScoped<IApplicationDbContext>(
             provider => provider.GetRequiredService<ApplicationDbContext>());
@@ -35,7 +36,8 @@ public static class DependencyInjection
                 options => options.UseNpgsql(
                     readOnlyConnectionString,
                     npgsql => npgsql.MigrationsAssembly(
-                        typeof(ApplicationDbContext).Assembly.FullName)));
+                        typeof(ApplicationDbContext).Assembly.FullName)
+                    .UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
 
             services.AddScoped<IReadOnlyApplicationDbContext>(
                 provider => provider.GetRequiredService<ReadOnlyApplicationDbContext>());
