@@ -55,6 +55,7 @@ public static class DependencyInjection
         services.AddScoped<IScraperService, Content.ScraperService>();
         services.AddScoped<IScraperEngine, Content.Engines.NguonTruyenEngine>();
         services.AddScoped<IScraperEngine, Content.Engines.TruyenFullEngine>();
+        services.AddScoped<IScraperEngine, Content.Engines.GioTruyenEngine>();
         // GenericFallbackEngine MUST be registered last — its CanHandle() always returns true.
         // ScraperService iterates engines in registration order and picks the first match.
         services.AddScoped<IScraperEngine, Content.Engines.GenericFallbackEngine>();

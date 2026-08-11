@@ -8128,11 +8128,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "d:\\Hai\\ComicWebBackend\\src\\3.Presentation\\ComicWeb.WebApi\\ComicWeb.WebApi.csproj",
+      "projectUniqueName": "D:\\Hai\\ComicWebBackend\\src\\3.Presentation\\ComicWeb.WebApi\\ComicWeb.WebApi.csproj",
       "projectName": "ComicWeb.WebApi",
-      "projectPath": "d:\\Hai\\ComicWebBackend\\src\\3.Presentation\\ComicWeb.WebApi\\ComicWeb.WebApi.csproj",
+      "projectPath": "D:\\Hai\\ComicWebBackend\\src\\3.Presentation\\ComicWeb.WebApi\\ComicWeb.WebApi.csproj",
       "packagesPath": "C:\\Users\\Acer\\.nuget\\packages\\",
-      "outputPath": "d:\\Hai\\ComicWebBackend\\src\\3.Presentation\\ComicWeb.WebApi\\obj\\",
+      "outputPath": "D:\\Hai\\ComicWebBackend\\src\\3.Presentation\\ComicWeb.WebApi\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -8155,11 +8155,11 @@
           "framework": "net9.0",
           "targetAlias": "net9.0",
           "projectReferences": {
-            "d:\\Hai\\ComicWebBackend\\src\\1.Core\\ComicWeb.Application\\ComicWeb.Application.csproj": {
-              "projectPath": "d:\\Hai\\ComicWebBackend\\src\\1.Core\\ComicWeb.Application\\ComicWeb.Application.csproj"
+            "D:\\Hai\\ComicWebBackend\\src\\1.Core\\ComicWeb.Application\\ComicWeb.Application.csproj": {
+              "projectPath": "D:\\Hai\\ComicWebBackend\\src\\1.Core\\ComicWeb.Application\\ComicWeb.Application.csproj"
             },
-            "d:\\Hai\\ComicWebBackend\\src\\2.Infrastructure\\ComicWeb.Persistence\\ComicWeb.Persistence.csproj": {
-              "projectPath": "d:\\Hai\\ComicWebBackend\\src\\2.Infrastructure\\ComicWeb.Persistence\\ComicWeb.Persistence.csproj"
+            "D:\\Hai\\ComicWebBackend\\src\\2.Infrastructure\\ComicWeb.Persistence\\ComicWeb.Persistence.csproj": {
+              "projectPath": "D:\\Hai\\ComicWebBackend\\src\\2.Infrastructure\\ComicWeb.Persistence\\ComicWeb.Persistence.csproj"
             }
           }
         }

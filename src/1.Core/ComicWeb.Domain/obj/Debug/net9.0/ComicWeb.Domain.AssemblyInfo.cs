@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ComicWeb.Domain")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b2262ec6deaad04a63ce274e1dfb260234dd30a4")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+000894cb74fd1ee63694120e2e831bb8aa8fdd3c")]
 [assembly: System.Reflection.AssemblyProductAttribute("ComicWeb.Domain")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ComicWeb.Domain")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

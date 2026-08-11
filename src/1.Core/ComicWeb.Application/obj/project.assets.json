@@ -1208,11 +1208,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "d:\\Hai\\ComicWebBackend\\src\\1.Core\\ComicWeb.Application\\ComicWeb.Application.csproj",
+      "projectUniqueName": "D:\\Hai\\ComicWebBackend\\src\\1.Core\\ComicWeb.Application\\ComicWeb.Application.csproj",
       "projectName": "ComicWeb.Application",
-      "projectPath": "d:\\Hai\\ComicWebBackend\\src\\1.Core\\ComicWeb.Application\\ComicWeb.Application.csproj",
+      "projectPath": "D:\\Hai\\ComicWebBackend\\src\\1.Core\\ComicWeb.Application\\ComicWeb.Application.csproj",
       "packagesPath": "C:\\Users\\Acer\\.nuget\\packages\\",
-      "outputPath": "d:\\Hai\\ComicWebBackend\\src\\1.Core\\ComicWeb.Application\\obj\\",
+      "outputPath": "D:\\Hai\\ComicWebBackend\\src\\1.Core\\ComicWeb.Application\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -1235,8 +1235,8 @@
           "framework": "net9.0",
           "targetAlias": "net9.0",
           "projectReferences": {
-            "d:\\Hai\\ComicWebBackend\\src\\1.Core\\ComicWeb.Domain\\ComicWeb.Domain.csproj": {
-              "projectPath": "d:\\Hai\\ComicWebBackend\\src\\1.Core\\ComicWeb.Domain\\ComicWeb.Domain.csproj"
+            "D:\\Hai\\ComicWebBackend\\src\\1.Core\\ComicWeb.Domain\\ComicWeb.Domain.csproj": {
+              "projectPath": "D:\\Hai\\ComicWebBackend\\src\\1.Core\\ComicWeb.Domain\\ComicWeb.Domain.csproj"
             }
           }
         }

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "T9BzyjF3k+k=",
+  "dgSpecHash": "L/JCzlv1XJM=",
   "success": true,
-  "projectFilePath": "d:\\Hai\\ComicWebBackend\\src\\1.Core\\ComicWeb.Application\\ComicWeb.Application.csproj",
+  "projectFilePath": "D:\\Hai\\ComicWebBackend\\src\\1.Core\\ComicWeb.Application\\ComicWeb.Application.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Acer\\.nuget\\packages\\automapper\\12.0.1\\automapper.12.0.1.nupkg.sha512",
     "C:\\Users\\Acer\\.nuget\\packages\\automapper.extensions.microsoft.dependencyinjection\\12.0.0\\automapper.extensions.microsoft.dependencyinjection.12.0.0.nupkg.sha512",
@@ -37,9 +37,9 @@
       "code": "NU1903",
       "level": "Warning",
       "message": "Package 'AutoMapper' 12.0.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-rvv3-g6hj-g44x",
-      "projectPath": "d:\\Hai\\ComicWebBackend\\src\\1.Core\\ComicWeb.Application\\ComicWeb.Application.csproj",
+      "projectPath": "D:\\Hai\\ComicWebBackend\\src\\1.Core\\ComicWeb.Application\\ComicWeb.Application.csproj",
       "warningLevel": 1,
-      "filePath": "d:\\Hai\\ComicWebBackend\\src\\1.Core\\ComicWeb.Application\\ComicWeb.Application.csproj",
+      "filePath": "D:\\Hai\\ComicWebBackend\\src\\1.Core\\ComicWeb.Application\\ComicWeb.Application.csproj",
       "libraryId": "AutoMapper",
       "targetGraphs": [
         "net9.0"

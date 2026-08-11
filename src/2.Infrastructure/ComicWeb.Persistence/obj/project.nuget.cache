@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "b1sC04nY7+s=",
+  "dgSpecHash": "D8tTigd/wl8=",
   "success": true,
-  "projectFilePath": "d:\\Hai\\ComicWebBackend\\src\\2.Infrastructure\\ComicWeb.Persistence\\ComicWeb.Persistence.csproj",
+  "projectFilePath": "D:\\Hai\\ComicWebBackend\\src\\2.Infrastructure\\ComicWeb.Persistence\\ComicWeb.Persistence.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Acer\\.nuget\\packages\\anglesharp\\0.17.1\\anglesharp.0.17.1.nupkg.sha512",
     "C:\\Users\\Acer\\.nuget\\packages\\anglesharp.css\\0.17.0\\anglesharp.css.0.17.0.nupkg.sha512",

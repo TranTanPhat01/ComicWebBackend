@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "zDJzdpjF1MA=",
+  "dgSpecHash": "7OTgR4S93bc=",
   "success": true,
-  "projectFilePath": "d:\\Hai\\ComicWebBackend\\src\\3.Presentation\\ComicWeb.WebApi\\ComicWeb.WebApi.csproj",
+  "projectFilePath": "D:\\Hai\\ComicWebBackend\\src\\3.Presentation\\ComicWeb.WebApi\\ComicWeb.WebApi.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Acer\\.nuget\\packages\\anglesharp\\0.17.1\\anglesharp.0.17.1.nupkg.sha512",
     "C:\\Users\\Acer\\.nuget\\packages\\anglesharp.css\\0.17.0\\anglesharp.css.0.17.0.nupkg.sha512",
