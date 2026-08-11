@@ -39,7 +39,11 @@ namespace ComicWeb.WebApi.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ApiEnvelope<string>($"Lỗi cào thông tin truyện: {ex.Message}", RequestId()));
+                throw new ComicWeb.Application.Common.Exceptions.AppException(
+                    "SCRAPE_ERROR",
+                    Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest,
+                    "Lỗi cào truyện",
+                    $"Lỗi cào thông tin truyện: {ex.Message}");
             }
         }
 
@@ -75,7 +79,11 @@ namespace ComicWeb.WebApi.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ApiEnvelope<string>($"Lỗi cào và lưu chương: {ex.Message}", RequestId()));
+                throw new ComicWeb.Application.Common.Exceptions.AppException(
+                    "IMPORT_CHAPTER_ERROR",
+                    Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest,
+                    "Lỗi cào chương",
+                    $"Lỗi cào và lưu chương: {ex.Message}");
             }
         }
 
