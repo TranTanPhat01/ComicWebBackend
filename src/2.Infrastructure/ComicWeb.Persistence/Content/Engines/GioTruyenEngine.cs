@@ -69,7 +69,7 @@ namespace ComicWeb.Persistence.Content.Engines
             var storySlug = ExtractStorySlug(storyUrl, doc);
 
             // 4. Parse chapters from page 1
-            var chapters = ParseChaptersFromHtml(doc, storySlug);
+            var chapters = ParseChaptersFromHtml(doc, html, storySlug);
 
             // 5. Check for pagination and fetch subsequent pages if any
             int maxPage = GetMaxPage(doc);
@@ -89,7 +89,7 @@ namespace ComicWeb.Persistence.Content.Engines
                     var pageDoc = new HtmlDocument();
                     pageDoc.LoadHtml(pageHtml);
 
-                    var pageChapters = ParseChaptersFromHtml(pageDoc, storySlug);
+                    var pageChapters = ParseChaptersFromHtml(pageDoc, pageHtml, storySlug);
                     foreach (var ch in pageChapters)
                     {
                         if (chapters.All(existing => existing.Url != ch.Url))
@@ -126,7 +126,13 @@ namespace ComicWeb.Persistence.Content.Engines
                 ?? doc.DocumentNode.SelectSingleNode("//div[contains(@class,'reading-content')]");
 
             if (contentNode == null)
+            {
+                if (html != null && (html.Contains("cloudflare", StringComparison.OrdinalIgnoreCase) || html.Contains("challenge-platform", StringComparison.OrdinalIgnoreCase)))
+                {
+                    throw new Exception("Yêu cầu đọc chương bị Cloudflare của giotruyen.online chặn. Vui lòng thử nguồn khác hoặc thử lại sau.");
+                }
                 throw new Exception($"Không tìm thấy nội dung chương tại: {chapterUrl}");
+            }
 
             // Remove noise: scripts, ads, hidden elements
             RemoveNoiseFromNode(contentNode);
@@ -137,13 +143,20 @@ namespace ComicWeb.Persistence.Content.Engines
 
         // ── Private: HTML chapter parsing ─────────────────────────────────────
 
-        private static List<ScrapedChapterLinkDto> ParseChaptersFromHtml(HtmlDocument doc, string storySlug)
+        private static List<ScrapedChapterLinkDto> ParseChaptersFromHtml(HtmlDocument doc, string html, string storySlug)
         {
             var chapters = new List<ScrapedChapterLinkDto>();
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             var listNode = doc.DocumentNode.SelectSingleNode("//div[contains(@class,'story-detail__list-chapter--list')]");
-            if (listNode == null) return chapters;
+            if (listNode == null)
+            {
+                if (html != null && (html.Contains("cloudflare", StringComparison.OrdinalIgnoreCase) || html.Contains("challenge-platform", StringComparison.OrdinalIgnoreCase)))
+                {
+                    throw new Exception("Yêu cầu cào truyện bị Cloudflare của giotruyen.online chặn. Vui lòng sử dụng nguồn khác như TruyenFull hoặc NguonTruyen, hoặc thử lại sau.");
+                }
+                throw new Exception("Không tìm thấy cấu trúc danh sách chương trong HTML.");
+            }
 
             var links = listNode.SelectNodes(".//a[@href]");
             if (links == null) return chapters;
