@@ -365,6 +365,12 @@ public sealed class GetPublishedChapterBySlugQueryHandler : IRequestHandler<GetP
             affiliateLink = globalSetting?.Value;
         }
 
+        // Safety fallback if no Shopee link is configured anywhere
+        if (string.IsNullOrWhiteSpace(affiliateLink))
+        {
+            affiliateLink = "https://shopee.vn";
+        }
+
         return new(chapter.Id, new(chapter.Story.Id, chapter.Story.Slug, chapter.Story.Title), chapter.Slug, chapter.ChapterNumber, chapter.Title!, chapter.Content!, previous, next, chapter.PublishedAt, isLocked, affiliateLink, chapter.Version, chapter.UpdateAt);
     }
 
