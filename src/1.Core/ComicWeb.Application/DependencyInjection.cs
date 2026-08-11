@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
@@ -14,8 +14,6 @@ namespace ComicWeb.Application
 
             //Đăng kí MediatR quét qua toàn bộ các Handler trong assembly này
             services.AddMediatR(static cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
-
-            services.AddScoped<Common.Interfaces.INotificationService, Features.Notifications.NotificationService>();
 
             return services;
         }

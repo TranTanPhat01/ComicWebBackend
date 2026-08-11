@@ -22,8 +22,6 @@ public sealed class ScheduledPublishingService : IScheduledPublishingService
     private readonly IAuditWriter _auditWriter;
     private readonly IPublicContentCacheInvalidator _cacheInvalidator;
 
-    private readonly INotificationService _notificationService;
-
     public ScheduledPublishingService(
         IApplicationDbContext db,
         IDateTimeProvider dateTime,
@@ -31,8 +29,7 @@ public sealed class ScheduledPublishingService : IScheduledPublishingService
         ILogger<ScheduledPublishingService> logger,
         IAuditContextAccessor auditContextAccessor,
         IAuditWriter auditWriter,
-        IPublicContentCacheInvalidator cacheInvalidator,
-        INotificationService notificationService)
+        IPublicContentCacheInvalidator cacheInvalidator)
     {
         _db = db;
         _dateTime = dateTime;
@@ -41,7 +38,6 @@ public sealed class ScheduledPublishingService : IScheduledPublishingService
         _auditContextAccessor = auditContextAccessor;
         _auditWriter = auditWriter;
         _cacheInvalidator = cacheInvalidator;
-        _notificationService = notificationService;
     }
 
     public async Task<ScheduledPublishingResult> PublishDueContentAsync(CancellationToken cancellationToken = default)
@@ -89,10 +85,6 @@ public sealed class ScheduledPublishingService : IScheduledPublishingService
 
                 await _db.SaveChangesAsync(cancellationToken);
                 await _cacheInvalidator.InvalidateStoryAndChaptersAsync(chapter.Story.Slug, cancellationToken);
-                
-                var title = string.IsNullOrWhiteSpace(chapter.Title) ? $"Chương {chapter.ChapterNumber}" : chapter.Title.Trim();
-                await _notificationService.CreateNewChapterNotificationAsync(chapter.StoryId, chapter.Story.Title, chapter.Id, title, cancellationToken);
-
                 result.ChaptersPublished++;
                 _logger.LogInformation("Successfully auto-published Chapter {ChapterId} for Story {StoryId}.", chapter.Id, chapter.StoryId);
             }

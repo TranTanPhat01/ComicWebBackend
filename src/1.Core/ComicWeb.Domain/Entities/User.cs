@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -57,18 +57,6 @@ namespace ComicWeb.Domain.Entities
         {
             PasswordHash = passwordHash;
             MustChangePassword = false;
-            UpdatedAt = now;
-        }
-
-        public void UpdateStatus(bool isActive, DateTime now)
-        {
-            IsActive = isActive;
-            UpdatedAt = now;
-        }
-
-        public void UpdateRole(UserRole role, DateTime now)
-        {
-            Role = role;
             UpdatedAt = now;
         }
 

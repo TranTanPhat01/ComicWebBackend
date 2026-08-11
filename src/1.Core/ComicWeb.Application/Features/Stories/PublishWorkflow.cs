@@ -32,20 +32,17 @@ public sealed class PublishWorkflowHandler :
     private readonly IDateTimeProvider _dateTime;
     private readonly IAuditWriter _auditWriter;
     private readonly IPublicContentCacheInvalidator _cacheInvalidator;
-    private readonly INotificationService _notificationService;
 
     public PublishWorkflowHandler(
         IApplicationDbContext db,
         IDateTimeProvider dateTime,
         IAuditWriter auditWriter,
-        IPublicContentCacheInvalidator cacheInvalidator,
-        INotificationService notificationService)
+        IPublicContentCacheInvalidator cacheInvalidator)
     {
         _db = db;
         _dateTime = dateTime;
         _auditWriter = auditWriter;
         _cacheInvalidator = cacheInvalidator;
-        _notificationService = notificationService;
     }
 
     public Task<PublicationDto> Handle(PublishStoryCommand request, CancellationToken ct) => ChangeStory(request.Id, request.Version, "publish", ct);
@@ -225,11 +222,6 @@ public sealed class PublishWorkflowHandler :
         {
             await Save(ct);
             await _cacheInvalidator.InvalidateStoryAndChaptersAsync(chapter.Story.Slug, ct);
-            if (action == "publish")
-            {
-                var title = string.IsNullOrWhiteSpace(chapter.Title) ? $"Chương {chapter.ChapterNumber}" : chapter.Title.Trim();
-                await _notificationService.CreateNewChapterNotificationAsync(chapter.StoryId, chapter.Story.Title, chapter.Id, title, ct);
-            }
         }
         catch (System.Exception ex)
         {

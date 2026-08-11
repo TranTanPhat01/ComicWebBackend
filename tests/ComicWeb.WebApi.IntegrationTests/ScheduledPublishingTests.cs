@@ -455,13 +455,6 @@ public sealed class ScheduledPublishingTests : IAsyncLifetime
         public DbSet<UserNotification> UserNotifications => _inner.UserNotifications;
         public DbSet<User> Users => _inner.Users;
         public DbSet<AuditLog> AuditLogs => _inner.AuditLogs;
-        public DbSet<AffiliateClick> AffiliateClicks => _inner.AffiliateClicks;
-        public DbSet<SystemSetting> SystemSettings => _inner.SystemSettings;
-        public DbSet<FollowedStory> FollowedStories => _inner.FollowedStories;
-        public DbSet<ReadingHistory> ReadingHistories => _inner.ReadingHistories;
-        public DbSet<StoryRating> StoryRatings => _inner.StoryRatings;
-        public DbSet<Comment> Comments => _inner.Comments;
-        public DbSet<NewsletterSubscriber> NewsletterSubscribers => _inner.NewsletterSubscribers;
 
         public Task<int> SaveChangesAsync(CancellationToken cancellationToken)
         {

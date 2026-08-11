@@ -11,7 +11,6 @@ public sealed record RefreshCommand(string RefreshToken, string? IpAddress, stri
 public sealed record LogoutCommand(string? RefreshToken, string? IpAddress) : IRequest;
 public sealed record ChangePasswordCommand(int UserId, string CurrentPassword, string NewPassword, string ConfirmPassword, string? IpAddress) : IRequest;
 public sealed record GetMeQuery(int UserId) : IRequest<MeResponse>;
-public sealed record RegisterCommand(string Username, string Email, string Password) : IRequest<AuthUserDto>;
 
 public sealed class LoginHandler(IAuthRepository repository, IPasswordHasher passwords, ITokenService tokens, IDateTimeProvider clock, IAuthenticationSecurityPolicy securityPolicy, IAuditWriter auditWriter) : IRequestHandler<LoginCommand, LoginOperationResult>
 {
@@ -182,75 +181,3 @@ public sealed class ChangePasswordHandler(IAuthRepository repository, IPasswordH
 }
 public sealed class GetMeHandler(IAuthRepository repository) : IRequestHandler<GetMeQuery, MeResponse>
 { public async Task<MeResponse> Handle(GetMeQuery r, CancellationToken ct) { var u = await repository.FindByIdAsync(r.UserId, ct); if (u is null || !u.IsActive) throw new AppException("UNAUTHORIZED", 401, "Unauthorized", "Không xác thực được người dùng."); var p = u.Role == UserRole.Admin ? new[] { "admin.access", "stories.read", "stories.create", "stories.update", "stories.delete", "stories.publish", "chapters.manage" } : Array.Empty<string>(); return new(u.Id, u.Username, u.Email, u.Role, u.MustChangePassword, p); } }
-
-public sealed class RegisterHandler(IAuthRepository repository, IPasswordHasher passwords, IDateTimeProvider clock, IAuditWriter auditWriter) : IRequestHandler<RegisterCommand, AuthUserDto>
-{
-    public async Task<AuthUserDto> Handle(RegisterCommand request, CancellationToken ct)
-    {
-        var username = request.Username?.Trim() ?? "";
-        var email = request.Email?.Trim() ?? "";
-        var password = request.Password;
-
-        // Validation
-        if (string.IsNullOrWhiteSpace(username) || username.Length < 3 || username.Length > 50)
-        {
-            throw new AppException("VALIDATION_ERROR", 400, "Validation failed", "Tên đăng nhập phải có độ dài từ 3 đến 50 ký tự.");
-        }
-
-        if (!System.Text.RegularExpressions.Regex.IsMatch(username, "^[a-zA-Z0-9_\\-]+$"))
-        {
-            throw new AppException("VALIDATION_ERROR", 400, "Validation failed", "Tên đăng nhập chỉ được chứa chữ cái, chữ số, dấu gạch dưới (_) và gạch ngang (-).");
-        }
-
-        if (string.IsNullOrWhiteSpace(email) || !System.Text.RegularExpressions.Regex.IsMatch(email, "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"))
-        {
-            throw new AppException("VALIDATION_ERROR", 400, "Validation failed", "Email không đúng định dạng.");
-        }
-
-        PasswordPolicy.EnsureValid(password, username, email);
-
-        // Check unique username
-        var normalizedUsername = username.ToUpperInvariant();
-        var existingUserByUsername = await repository.FindByUsernameOrEmailAsync(normalizedUsername, ct);
-        if (existingUserByUsername != null)
-        {
-            throw new AppException("USERNAME_TAKEN", 400, "Username taken", "Tên đăng nhập đã được sử dụng.");
-        }
-
-        // Check unique email
-        var normalizedEmail = email.ToUpperInvariant();
-        var existingUserByEmail = await repository.FindByUsernameOrEmailAsync(normalizedEmail, ct);
-        if (existingUserByEmail != null)
-        {
-            throw new AppException("EMAIL_TAKEN", 400, "Email taken", "Địa chỉ email đã được sử dụng.");
-        }
-
-        // Create User
-        var hash = passwords.Hash(password);
-        var user = new User(
-            username,
-            email,
-            hash,
-            UserRole.User, // Mặc định là Reader
-            mustChangePassword: false,
-            clock.UtcNow
-        );
-
-        await repository.AddUserAsync(user, ct);
-        await repository.SaveChangesAsync(ct);
-
-        // Audit Log
-        await auditWriter.WriteAsync(new AuditEvent(
-            Action: "USER_REGISTERED",
-            EntityType: "User",
-            EntityId: user.Id.ToString(),
-            Result: "Success",
-            Details: new { username = user.Username, email = user.Email },
-            ActorType: "Anonymous",
-            ActorUserId: null,
-            ActorUsername: null
-        ), ct);
-
-        return new AuthUserDto(user.Id, user.Username, user.Email, user.Role);
-    }
-}

@@ -2,6 +2,3 @@
 **/bin/
 **/obj/
 TestResults/
-.env
-.env.local
-.env.*.local

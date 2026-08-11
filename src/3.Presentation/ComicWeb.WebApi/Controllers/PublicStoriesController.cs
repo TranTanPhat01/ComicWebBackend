@@ -1,10 +1,7 @@
 using ComicWeb.Application.Features.Stories;
-using ComicWeb.Application.Features.Settings;
-using ComicWeb.Application.Common.Interfaces;
 using ComicWeb.WebApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,14 +11,12 @@ namespace ComicWeb.WebApi.Controllers;
 [ApiController]
 [Route("api/v1/stories")]
 [AllowAnonymous]
-[EnableRateLimiting("public-reading")]
-public sealed class PublicStoriesController(IViewCountService viewCountService) : BaseApiController
+public sealed class PublicStoriesController : BaseApiController
 {
     [HttpGet]
     public async Task<IActionResult> List([FromQuery] int page=1,[FromQuery] int pageSize=20,[FromQuery] string? query=null,[FromQuery] string? author=null,[FromQuery] string? genre=null,[FromQuery] string sort="-updatedAt")
     {
         var result=await Mediator.Send(new GetPublishedStoriesQuery(page,pageSize,query,author,genre,sort));
-        Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.CacheControl] = "public, max-age=10, s-maxage=60, stale-while-revalidate=30";
         return Ok(new PagedApiEnvelope<PublicStoryListItemDto>(result.Items,result.Meta,HttpContext.TraceIdentifier));
     }
 
@@ -29,7 +24,6 @@ public sealed class PublicStoriesController(IViewCountService viewCountService) 
     public async Task<IActionResult> Genres()
     {
         var result = await Mediator.Send(new GetGenresQuery());
-        Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.CacheControl] = "public, max-age=60, s-maxage=300, stale-while-revalidate=120";
         return Ok(new ApiEnvelope<IReadOnlyList<GenreListItemDto>>(result, HttpContext.TraceIdentifier));
     }
 
@@ -37,63 +31,40 @@ public sealed class PublicStoriesController(IViewCountService viewCountService) 
     public async Task<IActionResult> Detail(string storySlug)
     {
         var result = await Mediator.Send(new GetPublishedStoryBySlugQuery(storySlug));
-        if (HandleConditionalGet(result.Version, result.UpdatedAt, "public, max-age=60, s-maxage=3600, stale-while-revalidate=120", HttpContext.TraceIdentifier, out var actionResult))
+        if (HandleConditionalGet(result, HttpContext.TraceIdentifier, out var actionResult))
         {
             return actionResult!;
         }
-        // Fire-and-forget view count increment (non-blocking)
-        _ = viewCountService.IncrementAsync(result.Id);
         return Ok(new ApiEnvelope<PublicStoryDetailDto>(result, HttpContext.TraceIdentifier));
     }
 
     [HttpGet("{storySlug}/chapters")]
-    public async Task<IActionResult> Chapters(string storySlug,[FromQuery]int? lastChapterNumber=null,[FromQuery]int pageSize=100)
+    public async Task<IActionResult> Chapters(string storySlug,[FromQuery]int page=1,[FromQuery]int pageSize=100,[FromQuery]string sort="chapterNumber")
     {
-        var result=await Mediator.Send(new GetPublishedChaptersByStorySlugQuery(storySlug,lastChapterNumber,pageSize));
-        Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.CacheControl] = "public, max-age=60, s-maxage=600, stale-while-revalidate=60";
-        return Ok(new PagedApiEnvelope<PublicChapterSummaryDto>(
-            result.Items,
-            new { nextCursor = result.NextCursor, hasMore = result.HasMore },
-            HttpContext.TraceIdentifier));
+        var result=await Mediator.Send(new GetPublishedChaptersByStorySlugQuery(storySlug,page,pageSize,sort));
+        return Ok(new PagedApiEnvelope<PublicChapterSummaryDto>(result.Items,result.Meta,HttpContext.TraceIdentifier));
     }
 
     [HttpGet("{storySlug}/chapters/{chapterSlug}")]
     public async Task<IActionResult> Chapter(string storySlug,string chapterSlug)
     {
         var result = await Mediator.Send(new GetPublishedChapterBySlugQuery(storySlug,chapterSlug));
-        if (HandleConditionalGet(result.Version, result.UpdatedAt, "public, max-age=60, s-maxage=3600, stale-while-revalidate=120", HttpContext.TraceIdentifier, out var actionResult))
+        if (HandleConditionalGet(result, HttpContext.TraceIdentifier, out var actionResult))
         {
             return actionResult!;
         }
         return Ok(new ApiEnvelope<PublicChapterDetailDto>(result, HttpContext.TraceIdentifier));
     }
 
-    [HttpPost("chapters/{chapterId:int}/track-click")]
-    public async Task<IActionResult> TrackClick(int chapterId)
-    {
-        var ipAddress = Request.Headers["X-Forwarded-For"].FirstOrDefault() 
-                        ?? HttpContext.Connection.RemoteIpAddress?.ToString();
-        var userAgent = Request.Headers["User-Agent"].ToString();
-        var referrer = Request.Headers["Referer"].ToString();
-
-        await Mediator.Send(new TrackAffiliateClickCommand(chapterId, ipAddress, userAgent, referrer));
-        return Ok(new { success = true });
-    }
-
-    [HttpGet("settings")]
-    public async Task<IActionResult> GetSettings()
-    {
-        var result = await Mediator.Send(new GetPublicSettingsQuery());
-        return Ok(new ApiEnvelope<IReadOnlyList<SettingItemDto>>(result, HttpContext.TraceIdentifier));
-    }
-
-    private bool HandleConditionalGet(int version, DateTime? updatedAt, string cacheControl, string traceId, out IActionResult? actionResult)
+    private bool HandleConditionalGet(object dto, string traceId, out IActionResult? actionResult)
     {
         actionResult = null;
-        var etagValue = $"{version}_{updatedAt?.Ticks ?? 0}";
-        var etag = $"\"{etagValue}\"";
+        var json = System.Text.Json.JsonSerializer.Serialize(dto);
+        using var sha = System.Security.Cryptography.SHA256.Create();
+        var hash = sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(json));
+        var etag = $"\"{Convert.ToBase64String(hash)}\"";
 
-        Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.CacheControl] = cacheControl;
+        Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.CacheControl] = "public, no-cache";
         Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.ETag] = etag;
 
         var requestHeaders = Request.Headers;

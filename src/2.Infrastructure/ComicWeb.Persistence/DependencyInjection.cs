@@ -1,5 +1,4 @@
 using ComicWeb.Application.Common.Interface;
-using ComicWeb.Application.Common.Interfaces;
 using ComicWeb.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -7,7 +6,6 @@ using Microsoft.Extensions.DependencyInjection;
 using ComicWeb.Persistence.Auth;
 using ComicWeb.Persistence.Content;
 using Microsoft.Extensions.Options;
-using StackExchange.Redis;
 
 namespace ComicWeb.Persistence;
 
@@ -23,30 +21,10 @@ public static class DependencyInjection
             options => options.UseNpgsql(
                 connectionString,
                 npgsql => npgsql.MigrationsAssembly(
-                    typeof(ApplicationDbContext).Assembly.FullName)
-                .UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
+                    typeof(ApplicationDbContext).Assembly.FullName)));
 
         services.AddScoped<IApplicationDbContext>(
             provider => provider.GetRequiredService<ApplicationDbContext>());
-
-        var readOnlyConnectionString = configuration.GetConnectionString("ReadOnlyConnection");
-        if (!string.IsNullOrWhiteSpace(readOnlyConnectionString))
-        {
-            services.AddDbContext<ReadOnlyApplicationDbContext>(
-                options => options.UseNpgsql(
-                    readOnlyConnectionString,
-                    npgsql => npgsql.MigrationsAssembly(
-                        typeof(ApplicationDbContext).Assembly.FullName)
-                    .UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
-
-            services.AddScoped<IReadOnlyApplicationDbContext>(
-                provider => provider.GetRequiredService<ReadOnlyApplicationDbContext>());
-        }
-        else
-        {
-            services.AddScoped<IReadOnlyApplicationDbContext>(
-                provider => provider.GetRequiredService<ApplicationDbContext>());
-        }
 
         services.AddScoped<IAuthRepository, AuthRepository>();
         services.AddSingleton<IPasswordHasher, BcryptPasswordHasher>();
@@ -54,13 +32,6 @@ public static class DependencyInjection
         services.AddSingleton<ITokenService, JwtTokenService>();
         services.AddSingleton<ISlugGenerator, VietnameseSlugGenerator>();
         services.AddSingleton<IHtmlContentSanitizer, Content.HtmlContentSanitizer>();
-        services.AddScoped<IScraperService, Content.ScraperService>();
-        services.AddScoped<IScraperEngine, Content.Engines.NguonTruyenEngine>();
-        services.AddScoped<IScraperEngine, Content.Engines.TruyenFullEngine>();
-        services.AddScoped<IScraperEngine, Content.Engines.GioTruyenEngine>();
-        // GenericFallbackEngine MUST be registered last — its CanHandle() always returns true.
-        // ScraperService iterates engines in registration order and picks the first match.
-        services.AddScoped<IScraperEngine, Content.Engines.GenericFallbackEngine>();
 
         services.AddOptions<AuthenticationSecurityOptions>()
             .Bind(configuration.GetSection(AuthenticationSecurityOptions.SectionName))
@@ -74,20 +45,6 @@ public static class DependencyInjection
             .ValidateOnStart();
 
         services.AddSingleton<IAuthenticationSecurityPolicy, AuthenticationSecurityPolicy>();
-
-        // Register Storage Configurations and Services
-        var storageSection = configuration.GetSection(StorageOptions.SectionName);
-        services.Configure<StorageOptions>(storageSection);
-        
-        var storageOptions = storageSection.Get<StorageOptions>() ?? new StorageOptions();
-        if (storageOptions.Provider.Equals("Cloudinary", StringComparison.OrdinalIgnoreCase))
-        {
-            services.AddScoped<IImageStorageService, CloudinaryImageStorageService>();
-        }
-        else
-        {
-            services.AddScoped<IImageStorageService, LocalImageStorageService>();
-        }
 
         services.AddOptions<JwtOptions>()
             .Bind(configuration.GetSection(JwtOptions.SectionName))
@@ -123,38 +80,13 @@ public static class DependencyInjection
                 "Public cache TTL and MaxEntrySize must be greater than zero.")
             .ValidateOnStart();
 
+        services.AddSingleton<ComicWeb.Application.Common.Interfaces.IPublicContentCache, Caching.PublicContentCache>();
         services.AddSingleton<ComicWeb.Application.Common.Interfaces.IPublicCacheKeyFactory, Caching.PublicCacheKeyFactory>();
         services.AddSingleton<ComicWeb.Application.Common.Interfaces.IPublicContentCacheInvalidator, Caching.PublicContentCacheInvalidator>();
         services.AddSingleton<ComicWeb.Application.Common.Caching.KeyedLockManager>();
-        services.AddSingleton<ComicWeb.Application.Common.Interfaces.ICdnCachePurger, Caching.LoggingCdnCachePurger>();
-
-        var redisConnectionString = configuration.GetConnectionString("RedisConnection");
-        if (!string.IsNullOrWhiteSpace(redisConnectionString))
-        {
-            try
-            {
-                var connection = ConnectionMultiplexer.Connect(redisConnectionString);
-                services.AddSingleton<IConnectionMultiplexer>(connection);
-                services.AddSingleton<ComicWeb.Application.Common.Interfaces.IPublicContentCache, Caching.RedisContentCache>();
-            }
-            catch (Exception)
-            {
-                // Fallback to local memory cache if connection fails
-                services.AddSingleton<ComicWeb.Application.Common.Interfaces.IPublicContentCache, Caching.PublicContentCache>();
-            }
-        }
-        else
-        {
-            services.AddSingleton<ComicWeb.Application.Common.Interfaces.IPublicContentCache, Caching.PublicContentCache>();
-        }
 
         services.AddHostedService<AdminBootstrapService>();
         services.AddHostedService<GenreSeedService>();
-        services.AddHostedService<StorySeedService>();
-
-        // ViewCount: in-memory buffer with periodic flush to DB
-        services.AddSingleton<ComicWeb.Application.Common.Interfaces.IViewCountService, InMemoryViewCountService>();
-        services.AddHostedService<ViewCountFlushWorker>();
 
         return services;
     }
