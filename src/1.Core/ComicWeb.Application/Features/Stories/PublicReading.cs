@@ -352,7 +352,20 @@ public sealed class GetPublishedChapterBySlugQueryHandler : IRequestHandler<GetP
         if (chapter is null) throw NotFound("CHAPTER_NOT_FOUND", "Chapter was not found.");
         var previous = await FindNavigation(chapter.StoryId, chapter.ChapterNumber, true, ct);
         var next = await FindNavigation(chapter.StoryId, chapter.ChapterNumber, false, ct);
-        return new(chapter.Id, new(chapter.Story.Id, chapter.Story.Slug, chapter.Story.Title), chapter.Slug, chapter.ChapterNumber, chapter.Title!, chapter.Content!, previous, next, chapter.PublishedAt, chapter.IsLocked, chapter.AffiliateLink, chapter.Version, chapter.UpdateAt);
+        
+        // Automatically lock chapters starting from Chapter 2
+        bool isLocked = chapter.IsLocked || chapter.ChapterNumber >= 2;
+        
+        // Resolve affiliate link: use chapter affiliate link, fall back to global link if empty
+        string? affiliateLink = chapter.AffiliateLink;
+        if (string.IsNullOrWhiteSpace(affiliateLink))
+        {
+            var globalSetting = await db.SystemSettings.AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Key == "GlobalAffiliateLink", ct);
+            affiliateLink = globalSetting?.Value;
+        }
+
+        return new(chapter.Id, new(chapter.Story.Id, chapter.Story.Slug, chapter.Story.Title), chapter.Slug, chapter.ChapterNumber, chapter.Title!, chapter.Content!, previous, next, chapter.PublishedAt, isLocked, affiliateLink, chapter.Version, chapter.UpdateAt);
     }
 
     private async Task<ChapterNavigationDto?> FindNavigation(int storyId, int number, bool previous, CancellationToken ct) { var q = db.Chapters.AsNoTracking().Where(x => x.StoryId == storyId && x.Status == ChapterStatus.Published); q = previous ? q.Where(x => x.ChapterNumber < number).OrderByDescending(x => x.ChapterNumber) : q.Where(x => x.ChapterNumber > number).OrderBy(x => x.ChapterNumber); return await q.Select(x => new ChapterNavigationDto(x.Slug, x.ChapterNumber, x.Title!)).FirstOrDefaultAsync(ct); }

@@ -26,7 +26,8 @@ public sealed class SettingsManagementHandler :
     {
         "GlobalHeadScripts",
         "GlobalBodyScripts",
-        "CustomMetaTags"
+        "CustomMetaTags",
+        "GlobalAffiliateLink"
     };
 
     public SettingsManagementHandler(IApplicationDbContext db)
