@@ -151,11 +151,18 @@ namespace ComicWeb.Persistence.Content.Engines
             var listNode = doc.DocumentNode.SelectSingleNode("//div[contains(@class,'story-detail__list-chapter--list')]");
             if (listNode == null)
             {
-                if (html != null && (html.Contains("cloudflare", StringComparison.OrdinalIgnoreCase) || html.Contains("challenge-platform", StringComparison.OrdinalIgnoreCase)))
+                var pageTitle = "";
+                try
+                {
+                    pageTitle = ExtractTitle(doc);
+                }
+                catch {}
+
+                if (html != null && (html.Contains("cloudflare", StringComparison.OrdinalIgnoreCase) || html.Contains("challenge-platform", StringComparison.OrdinalIgnoreCase) || pageTitle.Contains("moment", StringComparison.OrdinalIgnoreCase)))
                 {
                     throw new Exception("Yêu cầu cào truyện bị Cloudflare của giotruyen.online chặn. Vui lòng sử dụng nguồn khác như TruyenFull hoặc NguonTruyen, hoặc thử lại sau.");
                 }
-                throw new Exception("Không tìm thấy cấu trúc danh sách chương trong HTML.");
+                throw new Exception($"Không tìm thấy cấu trúc danh sách chương trong HTML (Tiêu đề trang tải được: '{pageTitle}').");
             }
 
             var links = listNode.SelectNodes(".//a[@href]");
