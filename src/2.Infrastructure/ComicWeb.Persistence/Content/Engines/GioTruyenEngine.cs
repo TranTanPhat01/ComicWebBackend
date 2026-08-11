@@ -65,12 +65,47 @@ namespace ComicWeb.Persistence.Content.Engines
             var desc   = ExtractDescription(doc);
             var genres = ExtractGenres(doc);
 
-            // 3. Extract story slug and CSRF token
+            // 3. Extract story slug
             var storySlug = ExtractStorySlug(storyUrl, doc);
-            var csrfToken = ExtractCsrfToken(html);
 
-            // 4. Load ALL chapters via AJAX pagination
-            var chapters = await FetchAllChaptersAsync(client, storySlug, csrfToken, ct);
+            // 4. Parse chapters from page 1
+            var chapters = ParseChaptersFromHtml(doc, storySlug);
+
+            // 5. Check for pagination and fetch subsequent pages if any
+            int maxPage = GetMaxPage(doc);
+            for (int page = 2; page <= maxPage; page++)
+            {
+                await Task.Delay(100, ct); // Tiny delay to prevent rate limits
+
+                var pageUrl = storyUrl;
+                if (pageUrl.Contains('?'))
+                    pageUrl += $"&page={page}";
+                else
+                    pageUrl += $"?page={page}";
+
+                try
+                {
+                    var pageHtml = await client.GetStringAsync(pageUrl, ct);
+                    var pageDoc = new HtmlDocument();
+                    pageDoc.LoadHtml(pageHtml);
+
+                    var pageChapters = ParseChaptersFromHtml(pageDoc, storySlug);
+                    foreach (var ch in pageChapters)
+                    {
+                        if (chapters.All(existing => existing.Url != ch.Url))
+                        {
+                            chapters.Add(ch);
+                        }
+                    }
+                }
+                catch
+                {
+                    // Ignore page loading errors for best effort
+                }
+            }
+
+            // Sort ascending by chapter number
+            chapters.Sort((a, b) => a.ChapterNumber.CompareTo(b.ChapterNumber));
 
             return new ScrapedStoryMetadataDto(title, desc, cover, author, genres, chapters);
         }
@@ -100,103 +135,17 @@ namespace ComicWeb.Persistence.Content.Engines
             return ZeroWidthRegex.Replace(rawHtml, "").Trim();
         }
 
-        // ── Private: AJAX chapter loading ─────────────────────────────────────
+        // ── Private: HTML chapter parsing ─────────────────────────────────────
 
-        private static async Task<List<ScrapedChapterLinkDto>> FetchAllChaptersAsync(
-            HttpClient client,
-            string storySlug,
-            string csrfToken,
-            CancellationToken ct)
-        {
-            var allChapters = new List<ScrapedChapterLinkDto>();
-            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            int page = 1;
-
-            while (true)
-            {
-                var formData = new Dictionary<string, string>
-                {
-                    { "story_slug", storySlug },
-                    { "page",       page.ToString() }
-                };
-
-                var request = new HttpRequestMessage(HttpMethod.Post, AjaxChaptersUrl)
-                {
-                    Content = new FormUrlEncodedContent(formData)
-                };
-                request.Headers.Add("X-CSRF-TOKEN",       csrfToken);
-                request.Headers.Add("X-Requested-With",   "XMLHttpRequest");
-                request.Headers.Add("Referer",            $"{BaseUrl}/truyen/{storySlug}");
-                request.Headers.Add("Accept",             "application/json, text/javascript, */*");
-
-                HttpResponseMessage response;
-                try
-                {
-                    response = await client.SendAsync(request, ct);
-                    response.EnsureSuccessStatusCode();
-                }
-                catch (Exception ex)
-                {
-                    // If AJAX fails on the first page, fall back to HTML already loaded
-                    if (page == 1) break;
-                    throw new Exception($"Lỗi khi tải trang chương {page}: {ex.Message}", ex);
-                }
-
-                var json = await response.Content.ReadAsStringAsync(ct);
-                var ajaxResult = ParseAjaxChaptersResponse(json, storySlug);
-
-                if (ajaxResult.Count == 0) break; // No more chapters
-
-                foreach (var ch in ajaxResult)
-                {
-                    if (seen.Add(ch.Url))
-                        allChapters.Add(ch);
-                }
-
-                // If fewer results than expected, we've reached the last page
-                if (ajaxResult.Count < 20) break;
-
-                page++;
-
-                // Safety cap to avoid infinite loops
-                if (page > 500) break;
-            }
-
-            // Sort ascending by chapter number
-            allChapters.Sort((a, b) => a.ChapterNumber.CompareTo(b.ChapterNumber));
-            return allChapters;
-        }
-
-        private static List<ScrapedChapterLinkDto> ParseAjaxChaptersResponse(string json, string storySlug)
+        private static List<ScrapedChapterLinkDto> ParseChaptersFromHtml(HtmlDocument doc, string storySlug)
         {
             var chapters = new List<ScrapedChapterLinkDto>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            try
-            {
-                // The endpoint may return {html: "..."} or a plain HTML string
-                // Try JSON first
-                if (json.TrimStart().StartsWith("{"))
-                {
-                    using var doc = JsonDocument.Parse(json);
-                    if (doc.RootElement.TryGetProperty("html", out var htmlElement))
-                    {
-                        json = htmlElement.GetString() ?? string.Empty;
-                    }
-                    else if (doc.RootElement.TryGetProperty("data", out var dataElement))
-                    {
-                        json = dataElement.GetString() ?? string.Empty;
-                    }
-                }
-            }
-            catch { /* treat as raw HTML */ }
+            var listNode = doc.DocumentNode.SelectSingleNode("//div[contains(@class,'story-detail__list-chapter--list')]");
+            if (listNode == null) return chapters;
 
-            if (string.IsNullOrWhiteSpace(json)) return chapters;
-
-            var frag = new HtmlDocument();
-            frag.LoadHtml(json);
-
-            // Links are in format: <a href="/{storySlug}/chuong-X">Chương X</a>
-            var links = frag.DocumentNode.SelectNodes("//a[@href]");
+            var links = listNode.SelectNodes(".//a[@href]");
             if (links == null) return chapters;
 
             foreach (var link in links)
@@ -206,14 +155,11 @@ namespace ComicWeb.Persistence.Content.Engines
 
                 if (string.IsNullOrEmpty(href) || string.IsNullOrEmpty(text)) continue;
 
-                // Match chapter number from text
-                var numMatch = ChapterNumRegex.Match(text);
-                if (!numMatch.Success) continue;
-
-                // Build absolute URL
                 var absUrl = href.StartsWith("http") ? href : $"{BaseUrl}{href}";
+                if (!seen.Add(absUrl)) continue;
 
-                var chapterNumStr = numMatch.Groups[1].Value.Replace(",", "").Replace(".", "");
+                var numMatch = ChapterNumRegex.Match(text);
+                var chapterNumStr = numMatch.Success ? numMatch.Groups[1].Value.Replace(",", "").Replace(".", "") : "";
                 if (!int.TryParse(chapterNumStr, out var chapterNum))
                     chapterNum = chapters.Count + 1;
 
@@ -221,6 +167,29 @@ namespace ComicWeb.Persistence.Content.Engines
             }
 
             return chapters;
+        }
+
+        private static int GetMaxPage(HtmlDocument doc)
+        {
+            var paginateNode = doc.DocumentNode.SelectSingleNode("//div[contains(@class,'pagination')]")
+                               ?? doc.DocumentNode.SelectSingleNode("//ul[contains(@class,'pagination')]");
+            if (paginateNode == null) return 1;
+
+            var links = paginateNode.SelectNodes(".//a[@href]");
+            if (links == null) return 1;
+
+            int maxPage = 1;
+            foreach (var link in links)
+            {
+                var href = link.GetAttributeValue("href", "");
+                var match = Regex.Match(href, @"[?&]page=(\d+)");
+                if (match.Success && int.TryParse(match.Groups[1].Value, out var p))
+                {
+                    if (p > maxPage) maxPage = p;
+                }
+            }
+
+            return maxPage;
         }
 
         // ── Private: Metadata extraction ──────────────────────────────────────
