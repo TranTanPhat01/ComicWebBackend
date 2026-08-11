@@ -1,0 +1,47 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches: [ main, master, dev, Feature/Deploy ]
+  pull_request:
+    branches: [ main, master, dev ]
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up .NET Core SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore ComicWebBackend.sln
+
+    - name: Build Solution
+      run: dotnet build ComicWebBackend.sln --no-restore --configuration Release
+
+    - name: Run Unit Tests
+      run: dotnet test --filter ComicWeb.Application.Tests --no-build --configuration Release
+
+  deploy:
+    name: Deploy API Service
+    needs: build-and-test
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/Feature/Deploy')
+    runs-on: ubuntu-latest
+    steps:
+    - name: Trigger Render Deploy Webhook
+      env:
+        DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+      run: |
+        if [ -z "$DEPLOY_HOOK" ]; then
+          echo "Error: RENDER_DEPLOY_HOOK_URL secret is not configured in GitHub."
+          exit 1
+        fi
+        echo "Triggering Render deployment..."
+        curl -f -X POST "$DEPLOY_HOOK"
+        echo "Deployment trigger sent successfully!"

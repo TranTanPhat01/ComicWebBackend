@@ -268,7 +268,7 @@ public sealed class AdminContentHandler :
     public async Task<AdminChapterDto> Handle(AdminChapterByIdQuery request, CancellationToken ct) => ChapterDto(await Chapter(request.StoryId, request.Id, request.IncludeDeleted, ct));
     public async Task<AdminChapterDto> Handle(CreateAdminChapterCommand request, CancellationToken ct)
     {
-        ValidateChapter(request.ChapterNumber, request.Title, request.Content);
+        ValidateChapter(request.ChapterNumber, request.Title, request.Content, request.AffiliateLink);
         var sanitized = _sanitizer.Sanitize(request.Content);
         if (!_sanitizer.IsMeaningful(sanitized))
         {
@@ -314,7 +314,7 @@ public sealed class AdminContentHandler :
 
     public async Task<AdminChapterDto> Handle(UpdateAdminChapterCommand request, CancellationToken ct)
     {
-        ValidateChapter(request.ChapterNumber, request.Title, request.Content);
+        ValidateChapter(request.ChapterNumber, request.Title, request.Content, request.AffiliateLink);
         var sanitized = _sanitizer.Sanitize(request.Content);
         if (!_sanitizer.IsMeaningful(sanitized))
         {
@@ -518,7 +518,25 @@ public sealed class AdminContentHandler :
         }
     }
     private static void ValidateStory(string title, string description, string? cover) { if (string.IsNullOrWhiteSpace(title) || title.Trim().Length > 250) throw Bad("INVALID_TITLE", "Title is required and must be 250 characters or fewer."); if (string.IsNullOrWhiteSpace(description)) throw Bad("INVALID_DESCRIPTION", "Description is required."); if (!string.IsNullOrWhiteSpace(cover) && (!Uri.TryCreate(cover, UriKind.Absolute, out var uri) || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))) throw Bad("INVALID_COVER_URL", "Cover image URL must be HTTP or HTTPS."); }
-    private static void ValidateChapter(int number, string title, string content) { if (number <= 0) throw Bad("INVALID_CHAPTER_NUMBER", "Chapter number must be positive."); if (string.IsNullOrWhiteSpace(title)) throw Bad("INVALID_TITLE", "Title is required."); if (string.IsNullOrWhiteSpace(content)) throw Bad("INVALID_CONTENT", "Content is required."); }
+    private static void ValidateChapter(int number, string title, string content, string? affiliateLink)
+    {
+        if (number <= 0) throw Bad("INVALID_CHAPTER_NUMBER", "Chapter number must be positive.");
+        if (string.IsNullOrWhiteSpace(title)) throw Bad("INVALID_TITLE", "Title is required.");
+        if (string.IsNullOrWhiteSpace(content)) throw Bad("INVALID_CONTENT", "Content is required.");
+        if (!string.IsNullOrWhiteSpace(affiliateLink))
+        {
+            if (!Uri.TryCreate(affiliateLink, UriKind.Absolute, out var uri) || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+            {
+                throw Bad("INVALID_AFFILIATE_LINK", "Affiliate link must be a valid HTTP or HTTPS URL.");
+            }
+            var host = uri.Host.ToLowerInvariant();
+            var isAllowed = host.EndsWith("shopee.vn") || host.EndsWith("shope.ee") || host.EndsWith("lazada.vn") || host == "shopee.vn" || host == "shope.ee";
+            if (!isAllowed)
+            {
+                throw Bad("INVALID_AFFILIATE_DOMAIN", "Affiliate link must be from an allowed domain (Shopee or Lazada).");
+            }
+        }
+    }
     private static (int Page, int Size) Page(int page, int size) { if (page < 1 || size < 1 || size > 100) throw Bad("INVALID_PAGINATION", "Page must be positive and pageSize must be between 1 and 100."); return (page, size); }
     private static void CheckVersion(int actual, int supplied) { if (actual != supplied) throw Bad("CONCURRENCY_CONFLICT", "This record was changed by another request.", 409); }
     private async Task Save(CancellationToken ct) { try { await _db.SaveChangesAsync(ct); } catch (DbUpdateConcurrencyException) { throw Bad("CONCURRENCY_CONFLICT", "This record was changed by another request.", 409); } }
@@ -546,20 +564,27 @@ public sealed class AdminContentHandler :
             return;
         }
 
-        var existingGenres = await _db.Genres.Where(x => x.IsActive && normalized.Contains(x.Name)).ToListAsync(ct);
-        var existingNames = existingGenres.Select(x => x.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var normalizedSlugs = normalized.Select(x => x.ToLowerInvariant().Replace(" ", "-")).ToList();
+        var existingGenres = await _db.Genres.Where(x => normalizedSlugs.Contains(x.Slug)).ToListAsync(ct);
+        var existingSlugs = existingGenres.Select(x => x.Slug).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         foreach (var name in normalized)
         {
-            if (existingNames.Contains(name))
+            var slug = name.ToLowerInvariant().Replace(" ", "-");
+            if (existingSlugs.Contains(slug))
             {
+                var existing = existingGenres.First(x => string.Equals(x.Slug, slug, StringComparison.OrdinalIgnoreCase));
+                if (!existing.IsActive)
+                {
+                    existing.IsActive = true;
+                }
                 continue;
             }
 
-            var genre = new Genre { Name = name, Slug = name.ToLowerInvariant().Replace(" ", "-"), IsActive = true };
+            var genre = new Genre { Name = name, Slug = slug, IsActive = true };
             _db.Genres.Add(genre);
             existingGenres.Add(genre);
-            existingNames.Add(name);
+            existingSlugs.Add(slug);
         }
 
         foreach (var genre in existingGenres)

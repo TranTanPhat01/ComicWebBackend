@@ -15,6 +15,7 @@ public class Story : BaseEntity
     public DateTime? ScheduledAt { get; private set; }
     public DateTime? DeletedAt { get; private set; }
     public int Version { get; private set; }
+    public int ViewCount { get; private set; }
     public ICollection<Chapter> Chapters { get; set; } = new List<Chapter>();
     public ICollection<Genre> Genres { get; set; } = new List<Genre>();
 

@@ -8,6 +8,7 @@ namespace ComicWeb.Application.Dtos
         int TotalUsers,
         int TotalLogs,
         int LockedChapters,
-        int OngoingStories
+        int OngoingStories,
+        int TotalAffiliateClicks
     );
 }
