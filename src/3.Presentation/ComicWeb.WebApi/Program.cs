@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Text;
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.HttpOverrides;
 using ComicWeb.Application;
 using ComicWeb.Application.Common.Interfaces;
 using ComicWeb.Persistence;
@@ -222,8 +223,12 @@ static void ConfigureRateLimiting(WebApplicationBuilder builder)
             "public-reading",
             context =>
             {
-                var partitionKey =
-                    context.Connection.RemoteIpAddress?.ToString()
+                // Read the real client IP from X-Forwarded-For (set by Render/Vercel reverse proxy).
+                // Falls back to RemoteIpAddress if the header is absent (local development).
+                var forwardedFor = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+                var partitionKey = !string.IsNullOrWhiteSpace(forwardedFor)
+                    ? forwardedFor.Split(',')[0].Trim()  // first IP in the chain is the real client
+                    : context.Connection.RemoteIpAddress?.ToString()
                     ?? "unknown";
 
                 return RateLimitPartition.GetFixedWindowLimiter(
@@ -381,6 +386,13 @@ static void ConfigureMiddleware(WebApplication app)
             options.EnableTryItOutByDefault();
         });
     }
+
+    // Trust the reverse proxy (Render/Vercel) headers so RemoteIpAddress
+    // reflects the real client IP for rate limiting and logging.
+    app.UseForwardedHeaders(new ForwardedHeadersOptions
+    {
+        ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+    });
 
     app.UseMiddleware<
         ComicWeb.WebApi.Middlewares.ExceptionHandlingMiddleware>();
