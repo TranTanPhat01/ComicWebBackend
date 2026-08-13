@@ -1,4 +1,4 @@
-using ComicWeb.Application.Common.Interface;
+﻿using ComicWeb.Application.Common.Interface;
 using ComicWeb.Application.Common.Interfaces;
 using ComicWeb.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
@@ -58,7 +58,7 @@ public static class DependencyInjection
         services.AddScoped<IScraperEngine, Content.Engines.NguonTruyenEngine>();
         services.AddScoped<IScraperEngine, Content.Engines.TruyenFullEngine>();
         services.AddScoped<IScraperEngine, Content.Engines.GioTruyenEngine>();
-        // GenericFallbackEngine MUST be registered last — its CanHandle() always returns true.
+        // GenericFallbackEngine MUST be registered last â€” its CanHandle() always returns true.
         // ScraperService iterates engines in registration order and picks the first match.
         services.AddScoped<IScraperEngine, Content.Engines.GenericFallbackEngine>();
 
@@ -159,3 +159,4 @@ public static class DependencyInjection
         return services;
     }
 }
+
