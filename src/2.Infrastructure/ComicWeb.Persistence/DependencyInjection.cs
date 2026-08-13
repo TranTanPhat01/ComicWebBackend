@@ -1,4 +1,4 @@
-﻿using ComicWeb.Application.Common.Interface;
+using ComicWeb.Application.Common.Interface;
 using ComicWeb.Application.Common.Interfaces;
 using ComicWeb.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
@@ -80,7 +80,11 @@ public static class DependencyInjection
         services.Configure<StorageOptions>(storageSection);
         
         var storageOptions = storageSection.Get<StorageOptions>() ?? new StorageOptions();
-        if (storageOptions.Provider.Equals("Cloudinary", StringComparison.OrdinalIgnoreCase))
+        if (storageOptions.Provider.Equals("Supabase", StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddScoped<IImageStorageService, SupabaseImageStorageService>();
+        }
+        else if (storageOptions.Provider.Equals("Cloudinary", StringComparison.OrdinalIgnoreCase))
         {
             services.AddScoped<IImageStorageService, CloudinaryImageStorageService>();
         }
